@@ -2,10 +2,18 @@ import asyncio
 import sys
 from db import upsert_tours, deactivate_missing
 from scrapers.travelzeed import TravelzeedScraper
+from scrapers.nidnoitravel import NidnoiTravelScraper
+from scrapers.unithaitravel import UniThaiTravelScraper
+from scrapers.mushroomtravel import MushroomTravelScraper
+from scrapers.thaifly import ThaiFlyScraper
 
-# source_id ต้องตรงกับ seed ใน migration (ลำดับ insert)
+# source_id ตรงกับ seed ใน 001_initial_schema.sql (ลำดับ insert)
 SCRAPERS = [
-    TravelzeedScraper(source_id=4),  # travelzeed.com/fire
+    NidnoiTravelScraper(source_id=3),
+    TravelzeedScraper(source_id=4),
+    UniThaiTravelScraper(source_id=5),
+    MushroomTravelScraper(source_id=6),
+    ThaiFlyScraper(source_id=7),
 ]
 
 
