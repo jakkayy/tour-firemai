@@ -39,69 +39,82 @@ def _parse_thai_date(text: str) -> date | None:
 
 class NidnoiTravelScraper(BaseScraper):
     async def scrape(self) -> list[TourItem]:
-        tours: list[TourItem] = []
-
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
             page = await browser.new_page()
             await page.goto(LIST_URL, wait_until="networkidle", timeout=60000)
 
-            links = await page.query_selector_all("a[href]")
-            seen: set[str] = set()
+            scroll_height = await page.evaluate("document.body.scrollHeight")
+            pos, step = 0, 600
+            while pos < scroll_height:
+                pos += step
+                await page.evaluate(f"window.scrollTo(0, {pos})")
+                await page.wait_for_timeout(300)
+                scroll_height = await page.evaluate("document.body.scrollHeight")
+            await page.wait_for_timeout(2000)
 
-            for link_el in links:
-                href = await link_el.get_attribute("href")
-                if not href or not re.search(r"/tour|/package|/trip", href):
-                    continue
-                tour_url = href if href.startswith("http") else BASE_URL + href
-                if tour_url in seen:
-                    continue
-                seen.add(tour_url)
-
-                container = await link_el.evaluate_handle(
-                    "el => el.closest('article') || el.closest('li') || el.closest('div.tour') || el.parentElement"
-                )
-
-                title_el = await container.query_selector("h2, h3, h4")
-                title = (await title_el.text_content()).strip() if title_el else ""
-                if not title:
-                    title = (await link_el.text_content()).strip()
-                if not title or len(title) < 5:
-                    continue
-
-                text = await container.text_content()
-
-                orig_el = await container.query_selector("del, s, .price-old")
-                original_price = _parse_price(await orig_el.text_content()) if orig_el else None
-
-                price_match = re.search(r"(?:ราคา|เริ่ม|เพียง)\s*฿?\s*([\d,]+)", text)
-                discounted_price = _parse_price(price_match.group(1)) if price_match else None
-
-                if original_price and discounted_price:
-                    discount_percent = self._calc_discount(original_price, discounted_price)
-                else:
-                    discount_percent = None
-
-                departure_date = _parse_thai_date(text)
-
-                img_el = await container.query_selector("img")
-                image_url = await img_el.get_attribute("src") if img_el else None
-                if image_url and image_url.startswith("/"):
-                    image_url = BASE_URL + image_url
-
-                tours.append(
-                    TourItem(
-                        source_id=self.source_id,
-                        title=title,
-                        tour_url=tour_url,
-                        original_price=original_price,
-                        discounted_price=discounted_price,
-                        discount_percent=discount_percent,
-                        departure_date=departure_date,
-                        image_url=image_url,
-                    )
-                )
+            raw = await page.evaluate("""() => {
+                const seen = new Set()
+                const results = []
+                document.querySelectorAll('a[href*="/tour/"]').forEach(linkEl => {
+                    const href = linkEl.getAttribute('href')
+                    if (!href || seen.has(href)) return
+                    seen.add(href)
+                    const container = linkEl.closest('article') || linkEl.closest('li') || linkEl.parentElement
+                    const titleEl = container ? container.querySelector('h2, h3, h4') : null
+                    const imgEl = container ? container.querySelector('img') : null
+                    const origEl = container ? container.querySelector('del, s, .price-old') : null
+                    const text = container ? container.textContent : ''
+                    results.push({
+                        href,
+                        title: titleEl ? titleEl.textContent.trim() : linkEl.textContent.trim(),
+                        image: imgEl ? imgEl.getAttribute('src') : null,
+                        origPrice: origEl ? origEl.textContent.trim() : '',
+                        text: text.slice(0, 400),
+                    })
+                })
+                return results
+            }""")
 
             await browser.close()
+
+        tours: list[TourItem] = []
+        seen: set[str] = set()
+
+        for c in raw:
+            if not c.get("href") or not c.get("title") or len(c["title"]) < 5:
+                continue
+            href = c["href"]
+            tour_url = href if href.startswith("http") else BASE_URL + href
+            if tour_url in seen:
+                continue
+            seen.add(tour_url)
+
+            original_price = _parse_price(c["origPrice"])
+            price_match = re.search(r"(?:ราคา|เริ่ม|เพียง)\s*฿?\s*([\d,]+)", c["text"])
+            discounted_price = _parse_price(price_match.group(1)) if price_match else None
+            discount_percent = (
+                self._calc_discount(original_price, discounted_price)
+                if original_price and discounted_price
+                else None
+            )
+            departure_date = _parse_thai_date(c["text"])
+
+            image_url = c.get("image")
+            if image_url and image_url.startswith("/"):
+                image_url = BASE_URL + image_url
+
+            tours.append(
+                TourItem(
+                    source_id=self.source_id,
+                    title=c["title"],
+                    tour_url=tour_url,
+                    original_price=original_price,
+                    discounted_price=discounted_price,
+                    discount_percent=discount_percent,
+                    departure_date=departure_date,
+                    image_url=image_url,
+                )
+            )
 
         return tours

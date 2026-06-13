@@ -6,10 +6,11 @@ from base_scraper import BaseScraper, TourItem
 BASE_URL = "https://www.mushroomtravel.com"
 LIST_URL = f"{BASE_URL}/tour/promotion"
 
-THAI_MONTHS_FULL = {
-    "มกราคม": 1, "กุมภาพันธ์": 2, "มีนาคม": 3, "เมษายน": 4,
-    "พฤษภาคม": 5, "มิถุนายน": 6, "กรกฎาคม": 7, "สิงหาคม": 8,
-    "กันยายน": 9, "ตุลาคม": 10, "พฤศจิกายน": 11, "ธันวาคม": 12,
+THAI_MONTHS_ABBR = {
+    "ม.ค.": 1, "ก.พ.": 2, "มี.ค.": 3, "เม.ย.": 4,
+    "พ.ค.": 5, "ก.ค.": 7, "ส.ค.": 8, "ก.ย.": 9,
+    "ต.ค.": 10, "พ.ย.": 11, "ธ.ค.": 12,
+    "มิ.ย.": 6,
 }
 
 
@@ -22,16 +23,16 @@ def _parse_price(text: str) -> float | None:
 
 
 def _parse_thai_date(text: str) -> date | None:
-    # "15 มิถุนายน 69" or "15 มิถุนายน 2026"
-    match = re.search(r"(\d{1,2})\s+(\S+)\s+(\d{2,4})", text)
+    # "3 ก.ค. 69" or "3 ก.ค. 2026"
+    match = re.search(r"(\d{1,2})\s+(\S+\.)\s+(\d{2,4})", text)
     if not match:
         return None
-    month = THAI_MONTHS_FULL.get(match.group(2))
+    month = THAI_MONTHS_ABBR.get(match.group(2))
     if not month:
         return None
     year = int(match.group(3))
     if year < 100:
-        year = year + 2500 - 543  # Buddhist Era short form
+        year = year + 2500 - 543
     try:
         return date(year, month, int(match.group(1)))
     except ValueError:
@@ -40,75 +41,80 @@ def _parse_thai_date(text: str) -> date | None:
 
 class MushroomTravelScraper(BaseScraper):
     async def scrape(self) -> list[TourItem]:
-        tours: list[TourItem] = []
-
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
             page = await browser.new_page()
             await page.goto(LIST_URL, wait_until="networkidle", timeout=60000)
 
-            for _ in range(3):
-                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                await page.wait_for_timeout(1500)
+            scroll_height = await page.evaluate("document.body.scrollHeight")
+            pos, step = 0, 600
+            while pos < scroll_height:
+                pos += step
+                await page.evaluate(f"window.scrollTo(0, {pos})")
+                await page.wait_for_timeout(300)
+                scroll_height = await page.evaluate("document.body.scrollHeight")
+            await page.wait_for_timeout(2000)
 
-            items = await page.query_selector_all("li")
-            seen: set[str] = set()
-
-            for item in items:
-                link_el = await item.query_selector("a[href*='/tour/']")
-                if not link_el:
-                    continue
-
-                href = await link_el.get_attribute("href")
-                if not href:
-                    continue
-                tour_url = BASE_URL + href if href.startswith("/") else href
-                if tour_url in seen:
-                    continue
-                seen.add(tour_url)
-
-                title_el = await item.query_selector("h3, h2, h4")
-                title = (await title_el.text_content()).strip() if title_el else ""
-                if not title:
-                    title = (await link_el.text_content()).strip()
-                if not title:
-                    continue
-
-                text = await item.text_content()
-
-                # Original price: struck-through number
-                orig_el = await item.query_selector("del, s, .price-old, .original-price")
-                original_price = _parse_price(await orig_el.text_content()) if orig_el else None
-
-                # Discounted price: "เริ่ม X,XXX" or bold price
-                disc_match = re.search(r"เริ่ม\s*([\d,]+)", text)
-                discounted_price = _parse_price(disc_match.group(1)) if disc_match else None
-
-                if original_price and discounted_price:
-                    discount_percent = self._calc_discount(original_price, discounted_price)
-                else:
-                    discount_percent = None
-
-                departure_date = _parse_thai_date(text)
-
-                img_el = await item.query_selector("img")
-                image_url = await img_el.get_attribute("src") if img_el else None
-                if image_url and image_url.startswith("/"):
-                    image_url = BASE_URL + image_url
-
-                tours.append(
-                    TourItem(
-                        source_id=self.source_id,
-                        title=title,
-                        tour_url=tour_url,
-                        original_price=original_price,
-                        discounted_price=discounted_price,
-                        discount_percent=discount_percent,
-                        departure_date=departure_date,
-                        image_url=image_url,
-                    )
-                )
+            raw = await page.evaluate("""() => {
+                const results = []
+                document.querySelectorAll('.tour-card').forEach(card => {
+                    const linkEl = card.querySelector('a')
+                    const titleEl = card.querySelector('h3')
+                    const imgEl = card.querySelector('img')
+                    const origEl = card.querySelector('.original-price')
+                    const discEl = card.querySelector('.discounted-price')
+                    const dateEl = card.querySelector('.tour-dates')
+                    results.push({
+                        href: linkEl ? linkEl.getAttribute('href') : null,
+                        title: titleEl ? titleEl.textContent.trim() : '',
+                        image: imgEl ? imgEl.getAttribute('src') : null,
+                        origPrice: origEl ? origEl.textContent.trim() : '',
+                        discPrice: discEl ? discEl.textContent.trim() : '',
+                        dateText: dateEl ? dateEl.textContent.trim() : '',
+                    })
+                })
+                return results
+            }""")
 
             await browser.close()
+
+        tours: list[TourItem] = []
+        seen: set[str] = set()
+
+        for c in raw:
+            if not c.get("href") or not c.get("title"):
+                continue
+            href = c["href"]
+            tour_url = href if href.startswith("http") else BASE_URL + href
+            if tour_url in seen:
+                continue
+            seen.add(tour_url)
+
+            original_price = _parse_price(c["origPrice"])
+            disc_text = re.sub(r"เริ่ม\s*", "", c["discPrice"])
+            discounted_price = _parse_price(disc_text)
+            discount_percent = (
+                self._calc_discount(original_price, discounted_price)
+                if original_price and discounted_price
+                else None
+            )
+            departure_date = _parse_thai_date(c["dateText"])
+
+            image_url = c.get("image") or None
+            if image_url and image_url.startswith("/"):
+                image_url = BASE_URL + image_url
+
+            tours.append(
+                TourItem(
+                    source_id=self.source_id,
+                    title=c["title"],
+                    tour_url=tour_url,
+                    original_price=original_price,
+                    discounted_price=discounted_price,
+                    discount_percent=discount_percent,
+                    departure_date=departure_date,
+                    image_url=image_url,
+                )
+            )
 
         return tours

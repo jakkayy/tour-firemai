@@ -2,17 +2,14 @@ import asyncio
 import sys
 from db import upsert_tours, deactivate_missing
 from scrapers.travelzeed import TravelzeedScraper
-from scrapers.nidnoitravel import NidnoiTravelScraper
-from scrapers.unithaitravel import UniThaiTravelScraper
-from scrapers.mushroomtravel import MushroomTravelScraper
 from scrapers.thaifly import ThaiFlyScraper
 
 # source_id ตรงกับ seed ใน 001_initial_schema.sql (ลำดับ insert)
+# nidnoitravel (3): listing page ไม่มี title ต้องแก้เพิ่ม
+# unithaitravel (5): แสดงทัวร์ทั้งหมด ไม่ใช่เฉพาะ fire-sale
+# mushroomtravel (6): content โหลด AJAX ไม่สามารถ scrape ด้วย static render
 SCRAPERS = [
-    NidnoiTravelScraper(source_id=3),
     TravelzeedScraper(source_id=4),
-    UniThaiTravelScraper(source_id=5),
-    MushroomTravelScraper(source_id=6),
     ThaiFlyScraper(source_id=7),
 ]
 
