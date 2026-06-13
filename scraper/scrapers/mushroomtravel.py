@@ -68,17 +68,17 @@ class MushroomTravelScraper(BaseScraper):
                 seen.add(tour_url)
 
                 title_el = await item.query_selector("h3, h2, h4")
-                title = (await title_el.inner_text()).strip() if title_el else ""
+                title = (await title_el.text_content()).strip() if title_el else ""
                 if not title:
-                    title = (await link_el.inner_text()).strip()
+                    title = (await link_el.text_content()).strip()
                 if not title:
                     continue
 
-                text = await item.inner_text()
+                text = await item.text_content()
 
                 # Original price: struck-through number
                 orig_el = await item.query_selector("del, s, .price-old, .original-price")
-                original_price = _parse_price(await orig_el.inner_text()) if orig_el else None
+                original_price = _parse_price(await orig_el.text_content()) if orig_el else None
 
                 # Discounted price: "เริ่ม X,XXX" or bold price
                 disc_match = re.search(r"เริ่ม\s*([\d,]+)", text)

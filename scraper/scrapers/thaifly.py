@@ -63,22 +63,22 @@ class ThaiFlyScraper(BaseScraper):
                 seen.add(tour_url)
 
                 title_el = await card.query_selector(".product-name, h3, h2")
-                title = (await title_el.inner_text()).strip() if title_el else ""
+                title = (await title_el.text_content()).strip() if title_el else ""
                 if not title:
                     continue
 
                 orig_el = await card.query_selector(".price-old, del, s")
-                original_price = _parse_price(await orig_el.inner_text()) if orig_el else None
+                original_price = _parse_price(await orig_el.text_content()) if orig_el else None
 
                 disc_el = await card.query_selector(".price:not(.price-old), h2.price")
-                discounted_price = _parse_price(await disc_el.inner_text()) if disc_el else None
+                discounted_price = _parse_price(await disc_el.text_content()) if disc_el else None
 
                 if original_price and discounted_price:
                     discount_percent = self._calc_discount(original_price, discounted_price)
                 else:
                     discount_percent = None
 
-                text = await card.inner_text()
+                text = await card.text_content()
                 departure_date = _parse_date(text)
 
                 img_el = await card.query_selector("img.product-image, img")

@@ -63,16 +63,16 @@ class NidnoiTravelScraper(BaseScraper):
                 )
 
                 title_el = await container.query_selector("h2, h3, h4")
-                title = (await title_el.inner_text()).strip() if title_el else ""
+                title = (await title_el.text_content()).strip() if title_el else ""
                 if not title:
-                    title = (await link_el.inner_text()).strip()
+                    title = (await link_el.text_content()).strip()
                 if not title or len(title) < 5:
                     continue
 
-                text = await container.inner_text()
+                text = await container.text_content()
 
                 orig_el = await container.query_selector("del, s, .price-old")
-                original_price = _parse_price(await orig_el.inner_text()) if orig_el else None
+                original_price = _parse_price(await orig_el.text_content()) if orig_el else None
 
                 price_match = re.search(r"(?:ราคา|เริ่ม|เพียง)\s*฿?\s*([\d,]+)", text)
                 discounted_price = _parse_price(price_match.group(1)) if price_match else None

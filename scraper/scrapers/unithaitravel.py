@@ -59,13 +59,13 @@ class UniThaiTravelScraper(BaseScraper):
                     continue
                 seen.add(tour_url)
 
-                title = (await link_el.inner_text()).strip()
+                title = (await link_el.text_content()).strip()
                 # Remove code prefix like "THAI-VAN-052 : "
                 title = re.sub(r"^[\w-]+\s*:\s*", "", title).strip()
                 if not title:
                     continue
 
-                text = await item.inner_text()
+                text = await item.text_content()
 
                 price_match = re.search(r"เริ่ม\s*฿?([\d,]+)", text)
                 discounted_price = _parse_price(price_match.group(1)) if price_match else None
