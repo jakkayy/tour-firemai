@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import CategorySection from "@/components/CategorySection";
-import NewsletterSection from "@/components/NewsletterSection";
 import SiteFooter from "@/components/SiteFooter";
 import TourCard from "@/components/TourCard";
 import Link from "next/link";
@@ -141,7 +140,6 @@ export default async function Home({
         </div>
       </section>
 
-      <NewsletterSection />
       <SiteFooter />
     </>
   );

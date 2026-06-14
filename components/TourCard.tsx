@@ -83,9 +83,6 @@ export default function TourCard({ tour }: Props) {
           )}
         </div>
 
-        <span className="mt-1 text-center text-xs text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 transition-colors py-2 rounded-xl">
-          ดูรายละเอียด →
-        </span>
       </div>
     </a>
   );
