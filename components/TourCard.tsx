@@ -2,6 +2,7 @@ import type { Tour } from "@/types/database";
 
 type Props = {
   tour: Tour & { source_name?: string };
+  priority?: boolean;
 };
 
 function formatPrice(price: number | null) {
@@ -18,7 +19,7 @@ function formatDate(dateStr: string | null) {
   });
 }
 
-export default function TourCard({ tour }: Props) {
+export default function TourCard({ tour, priority = false }: Props) {
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
 
   return (
@@ -35,6 +36,8 @@ export default function TourCard({ tour }: Props) {
           <img
             src={tour.image_url}
             alt={tour.title}
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

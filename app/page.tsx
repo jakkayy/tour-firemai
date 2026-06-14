@@ -1,3 +1,6 @@
+// Cache each unique URL for 6 hours — matches the scraper cron schedule
+export const revalidate = 21600;
+
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
 import type { Tour } from "@/types/database";
@@ -131,8 +134,8 @@ export default async function Home({
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {tours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+              {tours.map((tour, i) => (
+                <TourCard key={tour.id} tour={tour} priority={i < 4} />
               ))}
             </div>
           )}
