@@ -22,7 +22,7 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
 
       <div className="relative z-10 text-center text-white px-4 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm text-blue-100 mb-6">
-          🔥 อัปเดตทัวร์ทุก 6 ชั่วโมง
+          อัปเดตทัวร์ทุก 6 ชั่วโมง
         </div>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
           ค้นพบ<span className="text-orange-400">ทัวร์ไฟไหม้</span><br />ราคาดีที่สุด

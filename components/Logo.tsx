@@ -1,9 +1,10 @@
 type Props = {
   size?: number;
   variant?: "full" | "icon";
+  textColor?: string;
 };
 
-export default function Logo({ size = 36, variant = "full" }: Props) {
+export default function Logo({ size = 36, variant = "full", textColor = "#1e3a8a" }: Props) {
   const h = size;
   const w = variant === "full" ? size * 4.2 : size * 0.9;
 
@@ -77,7 +78,7 @@ export default function Logo({ size = 36, variant = "full" }: Props) {
           fontFamily="'Geist', 'Noto Sans Thai', sans-serif"
           fontSize="22"
           fontWeight="700"
-          fill="#1e3a8a"
+          fill={textColor}
           letterSpacing="-0.5"
         >
           ทัวร์ไฟไหม้

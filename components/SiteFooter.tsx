@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "./Logo";
 
 export default function SiteFooter() {
   return (
@@ -6,9 +7,8 @@ export default function SiteFooter() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🔥</span>
-              <span className="text-white font-bold text-lg">ทัวร์ไฟไหม้</span>
+            <div className="mb-3">
+              <Logo size={32} variant="full" textColor="#ffffff" />
             </div>
             <p className="text-sm text-zinc-500 leading-relaxed">
               รวมทัวร์ลดราคาก่อนวันเดินทาง ดึงข้อมูลอัตโนมัติจากเว็บทัวร์ชั้นนำ

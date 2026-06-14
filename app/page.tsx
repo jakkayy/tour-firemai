@@ -75,7 +75,7 @@ export default async function Home({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h2 className="text-3xl font-bold text-zinc-900">
-                🔥 ทัวร์ไฟไหม้ ราคาดีที่สุด
+                ทัวร์ไฟไหม้ ราคาดีที่สุด
               </h2>
               <p className="text-zinc-500 text-sm mt-1">
                 {country
@@ -124,7 +124,6 @@ export default async function Home({
 
           {tours.length === 0 ? (
             <div className="text-center py-24 text-zinc-400">
-              <p className="text-5xl mb-4">🏝️</p>
               <p className="text-lg font-medium text-zinc-600 mb-2">
                 {country ? `ยังไม่มีทัวร์${country}ในขณะนี้` : "ยังไม่มีทัวร์ในขณะนี้"}
               </p>

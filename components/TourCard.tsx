@@ -38,18 +38,21 @@ export default function TourCard({ tour }: Props) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl text-zinc-300">
-            🌏
+          <div className="w-full h-full flex items-center justify-center bg-zinc-100">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d4d4d8" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+            </svg>
           </div>
         )}
         {discountPct && (
           <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
-            🔥 ลด {discountPct}%
+            ลด {discountPct}%
           </span>
         )}
         {tour.departure_date && (
           <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
-            📅 {formatDate(tour.departure_date)}
+            {formatDate(tour.departure_date)}
           </span>
         )}
       </div>

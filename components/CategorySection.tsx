@@ -1,30 +1,76 @@
 import Link from "next/link";
 
+function IconWaves() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 17c1.5-1.5 3-2 4.5-2s3 .5 4.5 2 3 2 4.5 2 3-.5 4.5-2" />
+      <path d="M2 11c1.5-1.5 3-2 4.5-2s3 .5 4.5 2 3 2 4.5 2 3-.5 4.5-2" />
+      <path d="M2 5c1.5-1.5 3-2 4.5-2s3 .5 4.5 2 3 2 4.5 2 3-.5 4.5-2" />
+    </svg>
+  );
+}
+
+function IconMountain() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 21l4-8 4 8" />
+      <path d="M3 21l6.5-13 3 5" />
+      <path d="M21 21l-6.5-13-1.5 3" />
+    </svg>
+  );
+}
+
+function IconPagoda() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L9 7h6L12 2z" />
+      <rect x="7" y="7" width="10" height="3" />
+      <path d="M5 10l-1 1h16l-1-1" />
+      <rect x="5" y="11" width="14" height="3" />
+      <path d="M3 14l-1 1h20l-1-1" />
+      <rect x="3" y="15" width="18" height="4" />
+      <line x1="3" y1="19" x2="21" y2="19" />
+    </svg>
+  );
+}
+
+function IconTower() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3L10 9h4L12 3z" />
+      <path d="M8 9L6 15h12L16 9" />
+      <path d="M4 15L3 21h18l-1-6" />
+      <line x1="10" y1="15" x2="10" y2="21" />
+      <line x1="14" y1="15" x2="14" y2="21" />
+    </svg>
+  );
+}
+
 const categories = [
   {
+    Icon: IconWaves,
     label: "ทัวร์ทะเล",
-    emoji: "🏖️",
     gradient: "from-cyan-500 to-blue-600",
     country: "ไทย",
     desc: "ทะเลใต้ เกาะสวยงาม",
   },
   {
+    Icon: IconMountain,
     label: "ทัวร์ญี่ปุ่น",
-    emoji: "🗻",
     gradient: "from-pink-500 to-rose-600",
     country: "ญี่ปุ่น",
     desc: "ซากุระ ฟูจิ โตเกียว",
   },
   {
+    Icon: IconPagoda,
     label: "ทัวร์จีน",
-    emoji: "🏯",
     gradient: "from-red-500 to-orange-600",
     country: "จีน",
-    desc: "กำแพงเมืองจีน ฉางเซี่ยง",
+    desc: "กำแพงเมืองจีน ฉางซา",
   },
   {
+    Icon: IconTower,
     label: "ทัวร์ยุโรป",
-    emoji: "🗼",
     gradient: "from-purple-600 to-indigo-700",
     country: "ยุโรป",
     desc: "ปารีส ลอนดอน โรม",
@@ -41,18 +87,17 @@ export default function CategorySection() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {categories.map((cat) => (
+          {categories.map(({ Icon, label, gradient, country, desc }) => (
             <Link
-              key={cat.label}
-              href={`/?country=${encodeURIComponent(cat.country)}#hot-deals`}
-              className={`relative bg-gradient-to-br ${cat.gradient} rounded-2xl p-6 text-white overflow-hidden group hover:scale-[1.02] transition-transform`}
+              key={label}
+              href={`/?country=${encodeURIComponent(country)}#hot-deals`}
+              className={`relative bg-gradient-to-br ${gradient} rounded-2xl p-6 text-white overflow-hidden group hover:scale-[1.02] transition-transform`}
             >
-              <div className="absolute -bottom-4 -right-4 text-7xl opacity-20 group-hover:opacity-30 transition-opacity">
-                {cat.emoji}
+              <div className="mb-4 opacity-90">
+                <Icon />
               </div>
-              <p className="text-4xl mb-3">{cat.emoji}</p>
-              <h3 className="font-bold text-lg">{cat.label}</h3>
-              <p className="text-sm text-white/80">{cat.desc}</p>
+              <h3 className="font-bold text-lg">{label}</h3>
+              <p className="text-sm text-white/80">{desc}</p>
             </Link>
           ))}
         </div>
