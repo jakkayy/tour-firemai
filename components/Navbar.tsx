@@ -1,12 +1,12 @@
 import Link from "next/link";
+import Logo from "./Logo";
 
 export default function Navbar() {
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">🔥</span>
-          <span className="text-xl font-bold text-blue-900">ทัวร์ไฟไหม้</span>
+        <Link href="/" className="flex items-center">
+          <Logo size={36} variant="full" />
         </Link>
 
         <div className="hidden md:flex items-center gap-6 text-sm text-zinc-600">
