@@ -21,13 +21,14 @@ function formatDate(dateStr: string | null) {
 
 export default function TourCard({ tour, priority = false }: Props) {
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
+  const price = tour.discounted_price ?? tour.original_price;
 
   return (
     <a
       href={tour.tour_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col rounded-2xl bg-white border border-zinc-100 overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5"
+      className="group flex flex-col rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
@@ -48,47 +49,47 @@ export default function TourCard({ tour, priority = false }: Props) {
             </svg>
           </div>
         )}
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+        {/* Discount badge */}
         {discountPct && (
-          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+          <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
             ลด {discountPct}%
           </span>
         )}
+
+        {/* Date */}
         {tour.departure_date && (
-          <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
+          <span className="absolute bottom-3 left-3 text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
             {formatDate(tour.departure_date)}
           </span>
         )}
       </div>
 
       {/* Content */}
-      <div className="flex flex-col flex-1 p-4 gap-2">
-        <p className="text-xs text-blue-600 font-medium">{tour.source_name ?? "ทัวร์"}</p>
-        <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1">
+      <div className="flex flex-col flex-1 p-4">
+        <p className="text-xs font-medium text-blue-600 mb-1">{tour.source_name ?? "ทัวร์"}</p>
+        <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1 mb-3">
           {tour.title}
         </h2>
 
-        <div className="flex items-end justify-between gap-2 pt-2 border-t border-zinc-50">
+        <div className="flex items-end justify-between gap-2">
           <div>
-            {tour.original_price && (
+            {tour.original_price && tour.discounted_price && (
               <p className="text-xs text-zinc-400 line-through">
                 ฿{formatPrice(tour.original_price)}
               </p>
             )}
             <p className="text-xl font-bold text-orange-500">
-              {tour.discounted_price
-                ? `฿${formatPrice(tour.discounted_price)}`
-                : tour.original_price
-                ? `฿${formatPrice(tour.original_price)}`
-                : "ติดต่อสอบถาม"}
+              {price ? `฿${formatPrice(price)}` : "ติดต่อสอบถาม"}
             </p>
           </div>
-          {tour.seats_left != null && (
-            <span className="text-xs text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded-full">
-              เหลือ {tour.seats_left} ที่
-            </span>
-          )}
+          <span className="shrink-0 text-xs font-medium text-blue-800 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-xl group-hover:bg-blue-100 transition-colors">
+            ดูทัวร์ ↗
+          </span>
         </div>
-
       </div>
     </a>
   );

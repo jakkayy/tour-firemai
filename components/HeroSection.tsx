@@ -10,7 +10,7 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const url = country ? `/?country=${encodeURIComponent(country)}#hot-deals` : "/#hot-deals";
+    const url = country ? `/tours?country=${encodeURIComponent(country)}` : "/tours";
     router.push(url);
   }
 
