@@ -4,55 +4,68 @@ type Props = {
   textColor?: string;
 };
 
-let _id = 0;
+let _uid = 0;
 
-function FlameIcon({ size }: { size: number }) {
-  // Unique IDs per instance so multiple logos on the same page don't share gradient defs
-  const uid = ++_id;
-  const outer = `flame-outer-${uid}`;
-  const inner = `flame-inner-${uid}`;
+function PinIcon({ size }: { size: number }) {
+  const id = ++_uid;
+  const grad = `pin-grad-${id}`;
+  const shine = `pin-shine-${id}`;
 
   return (
     <svg
-      width={size * 0.9}
+      width={size * 0.82}
       height={size}
-      viewBox="0 0 36 40"
+      viewBox="0 0 36 46"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={outer} x1="18" y1="38" x2="18" y2="3" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FBBF24" />
-          <stop offset="45%" stopColor="#F97316" />
-          <stop offset="100%" stopColor="#DC2626" />
+        <linearGradient id={grad} x1="18" y1="2" x2="18" y2="44" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="55%" stopColor="#1d4ed8" />
+          <stop offset="100%" stopColor="#1e3a8a" />
         </linearGradient>
-        <linearGradient id={inner} x1="18" y1="36" x2="18" y2="14" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FEF9C3" />
-          <stop offset="100%" stopColor="#FDE68A" stopOpacity="0" />
-        </linearGradient>
+        <radialGradient id={shine} cx="35%" cy="28%" r="50%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
       </defs>
+
+      {/* Pin body */}
       <path
-        d="M18 3 C22 9 26 13 25 19 C24 15 27 15 27 19 C27 26 23 30 20 34 C19 36 18.5 37 18 38 C17.5 37 17 36 16 34 C13 30 9 26 9 19 C9 15 12 15 11 19 C10 13 14 9 18 3 Z"
-        fill={`url(#${outer})`}
+        d="M18 2 C9.163 2 2 9.163 2 18 C2 29 18 44 18 44 C18 44 34 29 34 18 C34 9.163 26.837 2 18 2 Z"
+        fill={`url(#${grad})`}
       />
+
+      {/* Shine overlay */}
       <path
-        d="M18 16 C20 19 21 22 21 26 C21 31 19.5 34.5 18 38 C16.5 34.5 15 31 15 26 C15 22 16 19 18 16 Z"
-        fill={`url(#${inner})`}
+        d="M18 2 C9.163 2 2 9.163 2 18 C2 29 18 44 18 44 C18 44 34 29 34 18 C34 9.163 26.837 2 18 2 Z"
+        fill={`url(#${shine})`}
       />
-      <ellipse cx="16" cy="28" rx="2" ry="3" fill="white" opacity="0.25" />
+
+      {/* Inner ring */}
+      <circle cx="18" cy="17" r="8" fill="white" opacity="0.15" />
+
+      {/* Center dot */}
+      <circle cx="18" cy="17" r="4" fill="white" opacity="0.85" />
+
+      {/* Tiny plane silhouette inside dot */}
+      <path
+        d="M18 14.5 L20.5 17 L18 16.5 L15.5 17 Z"
+        fill="#1d4ed8"
+        opacity="0.7"
+      />
     </svg>
   );
 }
 
 export default function Logo({ size = 36, variant = "full", textColor = "#1e3a8a" }: Props) {
-  if (variant === "icon") {
-    return <FlameIcon size={size} />;
-  }
+  if (variant === "icon") return <PinIcon size={size} />;
 
   return (
     <div className="flex items-center gap-2" aria-label="ทัวร์ไฟไหม้">
-      <FlameIcon size={size} />
+      <PinIcon size={size} />
       <span
         style={{
           color: textColor,

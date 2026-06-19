@@ -55,7 +55,7 @@ export default function TourCard({ tour, priority = false }: Props) {
 
         {/* Discount badge */}
         {discountPct && (
-          <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
             ลด {discountPct}%
           </span>
         )}
@@ -82,11 +82,11 @@ export default function TourCard({ tour, priority = false }: Props) {
                 ฿{formatPrice(tour.original_price)}
               </p>
             )}
-            <p className="text-xl font-bold text-orange-500">
+            <p className="text-xl font-bold text-amber-600">
               {price ? `฿${formatPrice(price)}` : "ติดต่อสอบถาม"}
             </p>
           </div>
-          <span className="shrink-0 text-xs font-medium text-blue-800 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-xl group-hover:bg-blue-100 transition-colors">
+          <span className="shrink-0 text-xs font-medium text-teal-700 border border-teal-200 bg-teal-50 px-3 py-1.5 rounded-xl group-hover:bg-teal-100 transition-colors">
             ดูทัวร์ ↗
           </span>
         </div>

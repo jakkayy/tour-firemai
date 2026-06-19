@@ -64,7 +64,7 @@ const categories = [
   {
     Icon: IconPagoda,
     label: "ทัวร์จีน",
-    gradient: "from-red-500 to-orange-600",
+    gradient: "from-rose-600 to-red-800",
     country: "จีน",
     desc: "กำแพงเมืองจีน ฉางซา",
   },

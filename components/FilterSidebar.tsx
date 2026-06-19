@@ -52,7 +52,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
           <h2 className="font-semibold text-zinc-900">ตัวกรอง</h2>
           <button
             onClick={clear}
-            className="text-xs text-orange-500 hover:underline font-medium"
+            className="text-xs text-teal-600 hover:underline font-medium"
           >
             ล้างทั้งหมด
           </button>
