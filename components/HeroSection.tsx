@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { COUNTRY_LIST } from "@/lib/countries";
+import Dropdown from "./Dropdown";
 
 export default function HeroSection({ selectedCountry }: { selectedCountry?: string }) {
   const router = useRouter();
@@ -44,21 +45,19 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
 
         <form
           onSubmit={handleSearch}
-          className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2 shadow-2xl"
+          className="flex flex-col sm:flex-row gap-2 max-w-xl mx-auto"
         >
-          <select
+          <Dropdown
+            variant="dark"
+            options={[
+              { value: "", label: "ทุกประเทศปลายทาง" },
+              ...COUNTRY_LIST.map((c) => ({ value: c, label: `ทัวร์${c}` })),
+            ]}
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="flex-1 px-4 py-2.5 text-white bg-transparent outline-none text-sm"
-            style={{ colorScheme: "dark" }}
-          >
-            <option value="" className="text-zinc-900">ทุกประเทศปลายทาง</option>
-            {COUNTRY_LIST.map((c) => (
-              <option key={c} value={c} className="text-zinc-900">
-                ทัวร์{c}
-              </option>
-            ))}
-          </select>
+            onChange={setCountry}
+            placeholder="ทุกประเทศปลายทาง"
+            className="flex-1"
+          />
           <button
             type="submit"
             className="bg-teal-500 text-white px-8 py-2.5 rounded-xl font-semibold text-sm hover:bg-teal-400 transition-colors whitespace-nowrap"

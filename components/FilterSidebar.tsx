@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Dropdown from "./Dropdown";
 
 type Params = {
   country?: string;
@@ -63,18 +64,15 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
           <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2 block">
             ประเทศปลายทาง
           </label>
-          <select
+          <Dropdown
+            options={[
+              { value: "", label: "ทุกประเทศ" },
+              ...countries.map((c) => ({ value: c, label: c })),
+            ]}
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-700 outline-none focus:border-blue-400 bg-white"
-          >
-            <option value="">ทุกประเทศ</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            onChange={setCountry}
+            placeholder="ทุกประเทศ"
+          />
         </div>
 
         {/* Price range */}
@@ -105,16 +103,16 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
           <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2 block">
             เรียงตาม
           </label>
-          <select
+          <Dropdown
+            options={[
+              { value: "discount", label: "ส่วนลดสูงสุด" },
+              { value: "price_asc", label: "ราคา: น้อย → มาก" },
+              { value: "price_desc", label: "ราคา: มาก → น้อย" },
+              { value: "date", label: "วันเดินทางใกล้สุด" },
+            ]}
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-700 outline-none focus:border-blue-400 bg-white"
-          >
-            <option value="discount">ส่วนลดสูงสุด</option>
-            <option value="price_asc">ราคา: น้อย → มาก</option>
-            <option value="price_desc">ราคา: มาก → น้อย</option>
-            <option value="date">วันเดินทางใกล้สุด</option>
-          </select>
+            onChange={setSort}
+          />
         </div>
 
         <button
