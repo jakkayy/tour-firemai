@@ -68,7 +68,7 @@ export default async function Home() {
                 <PlaneIcon />
               </div>
               <div>
-                <p className="font-bold text-zinc-900 text-sm">4 เว็บไซต์หลัก</p>
+                <p className="font-bold text-zinc-900 text-sm">6 เว็บไซต์หลัก</p>
                 <p className="text-xs text-zinc-500">เปรียบเทียบราคาจากแหล่งที่เชื่อถือได้</p>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default async function Home() {
                 <ListIcon />
               </div>
               <div>
-                <p className="font-bold text-zinc-900 text-sm">ทัวร์มากกว่า 275 รายการ</p>
+                <p className="font-bold text-zinc-900 text-sm">ทัวร์มากกว่า 400 รายการ</p>
                 <p className="text-xs text-zinc-500">หลากหลายปลายทางทั่วโลก</p>
               </div>
             </div>
