@@ -9,6 +9,14 @@ import Link from "next/link";
 
 type TourWithSource = Tour & { source_name: string };
 
+async function getTourCount(): Promise<number> {
+  const { count } = await supabase
+    .from("tours")
+    .select("*", { count: "exact", head: true })
+    .eq("is_active", true);
+  return count ?? 0;
+}
+
 async function getFeaturedTours(): Promise<TourWithSource[]> {
   const { data, error } = await supabase
     .from("tours")
@@ -52,7 +60,7 @@ function ListIcon() {
 }
 
 export default async function Home() {
-  const tours = await getFeaturedTours();
+  const [tours, tourCount] = await Promise.all([getFeaturedTours(), getTourCount()]);
 
   return (
     <>
@@ -86,7 +94,7 @@ export default async function Home() {
                 <ListIcon />
               </div>
               <div>
-                <p className="font-bold text-zinc-900 text-sm">ทัวร์มากกว่า 400 รายการ</p>
+                <p className="font-bold text-zinc-900 text-sm">ทัวร์ {tourCount.toLocaleString("th-TH")} รายการ</p>
                 <p className="text-xs text-zinc-500">หลากหลายปลายทางทั่วโลก</p>
               </div>
             </div>
