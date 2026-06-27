@@ -1,5 +1,6 @@
 export const revalidate = 21600;
 
+import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -19,6 +20,35 @@ type Params = {
   sort?: string;
   page?: string;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Params>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const selected = params.countries
+    ? params.countries.split(",").filter((c) => COUNTRY_LIST.includes(c))
+    : [];
+
+  const title =
+    selected.length === 1
+      ? `ทัวร์${selected[0]}ราคาถูก | ทัวร์ไฟไหม้`
+      : selected.length > 1
+        ? `ทัวร์ ${selected.join(" · ")} | ทัวร์ไฟไหม้`
+        : "ทัวร์ไฟไหม้ทั้งหมด | รวมทัวร์ลดราคาก่อนวันเดินทาง";
+
+  const description =
+    selected.length > 0
+      ? `รวมทัวร์${selected.join(" ")}ไฟไหม้ ลดราคาสูงสุด อัปเดตทุก 6 ชั่วโมง`
+      : "รวมทัวร์ไฟไหม้จาก 6 เว็บชั้นนำ ลดราคาสูงสุด อัปเดตทุก 6 ชั่วโมง";
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
+}
 
 type TourWithSource = Tour & { source_name: string };
 
