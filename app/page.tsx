@@ -111,7 +111,7 @@ export default async function Home() {
             <p className="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-2">Flash Sale Deals</p>
             <h2 className="text-3xl font-bold text-zinc-900">ดีลทัวร์ไฟไหม้ แนะนำวันนี้</h2>
             <p className="text-zinc-500 text-sm mt-1">
-              คัดสรรทัวร์ไฟไหม้ที่ลดราคาสูงสุดจากทุกแหล่ง
+              คัดสรรทัวร์ไฟไหม้ที่ลดราคาสูงสุดจากหลายแหล่ง
             </p>
           </div>
 
