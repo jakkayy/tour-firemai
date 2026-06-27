@@ -6,66 +6,64 @@ type Props = {
 
 let _uid = 0;
 
-function PinIcon({ size }: { size: number }) {
+function TravelIcon({ size }: { size: number }) {
   const id = ++_uid;
-  const grad = `pin-grad-${id}`;
-  const shine = `pin-shine-${id}`;
+  const clipId = `tci-${id}`;
 
   return (
     <svg
-      width={size * 0.82}
+      width={size}
       height={size}
-      viewBox="0 0 36 46"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={grad} x1="18" y1="2" x2="18" y2="44" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#38bdf8" />
-          <stop offset="55%" stopColor="#1d4ed8" />
-          <stop offset="100%" stopColor="#1e3a8a" />
-        </linearGradient>
-        <radialGradient id={shine} cx="35%" cy="28%" r="50%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="white" stopOpacity="0" />
-        </radialGradient>
+        <clipPath id={clipId}>
+          <circle cx="50" cy="50" r="43" />
+        </clipPath>
       </defs>
 
-      {/* Pin body */}
-      <path
-        d="M18 2 C9.163 2 2 9.163 2 18 C2 29 18 44 18 44 C18 44 34 29 34 18 C34 9.163 26.837 2 18 2 Z"
-        fill={`url(#${grad})`}
-      />
+      {/* Outer ring */}
+      <circle cx="50" cy="50" r="46" fill="white" stroke="#26a69a" strokeWidth="5" />
 
-      {/* Shine overlay */}
-      <path
-        d="M18 2 C9.163 2 2 9.163 2 18 C2 29 18 44 18 44 C18 44 34 29 34 18 C34 9.163 26.837 2 18 2 Z"
-        fill={`url(#${shine})`}
-      />
+      <g clipPath={`url(#${clipId})`}>
+        {/* Sun */}
+        <circle cx="50" cy="58" r="13" fill="#f5a31c" />
 
-      {/* Inner ring */}
-      <circle cx="18" cy="17" r="8" fill="white" opacity="0.15" />
+        {/* Left mountain */}
+        <polygon points="3,90 38,33 68,90" fill="#1a8585" />
 
-      {/* Center dot */}
-      <circle cx="18" cy="17" r="4" fill="white" opacity="0.85" />
+        {/* Right mountain (in front) */}
+        <polygon points="26,90 63,24 95,90" fill="#26a69a" />
 
-      {/* Tiny plane silhouette inside dot */}
-      <path
-        d="M18 14.5 L20.5 17 L18 16.5 L15.5 17 Z"
-        fill="#1d4ed8"
-        opacity="0.7"
-      />
+        {/* Ground fill */}
+        <rect x="0" y="78" width="100" height="20" fill="#26a69a" />
+
+        {/* Swoosh flight path */}
+        <path
+          d="M 13,46 C 6,16 64,5 76,26"
+          stroke="#1a8585"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+
+        {/* Airplane at end of swoosh, pointing upper-right */}
+        <g transform="translate(76,23) rotate(45)" fill="#1a8585">
+          <path d="M 0,-4.5 L 1,-2.8 L 1,0.5 L 5.5,2.5 L 5,3.5 L 1,1.5 L 1,3.5 L 2.5,5 L 1.5,5.5 L 0,4.5 L -1.5,5.5 L -2.5,5 L -1,3.5 L -1,1.5 L -5,3.5 L -5.5,2.5 L -1,0.5 L -1,-2.8 Z" />
+        </g>
+      </g>
     </svg>
   );
 }
 
 export default function Logo({ size = 36, variant = "full", textColor = "#1e3a8a" }: Props) {
-  if (variant === "icon") return <PinIcon size={size} />;
+  if (variant === "icon") return <TravelIcon size={size} />;
 
   return (
     <div className="flex items-center gap-2" aria-label="ทัวร์ไฟไหม้">
-      <PinIcon size={size} />
+      <TravelIcon size={size} />
       <span
         style={{
           color: textColor,
