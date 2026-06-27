@@ -6,6 +6,7 @@ from scrapers.thaifly import ThaiFlyScraper
 from scrapers.mushroom import MushroomScraper
 from scrapers.unithai import UniThaiScraper
 from scrapers.qualityexpress import QualityExpressScraper
+from scrapers.navarich import NavarichScraper
 
 # source_id ตรงกับ seed ใน 001_initial_schema.sql (ลำดับ insert)
 # nidnoitravel (3): listing page ไม่มี title ต้องแก้เพิ่ม
@@ -15,6 +16,7 @@ SCRAPERS = [
     MushroomScraper(source_id=6),
     ThaiFlyScraper(source_id=7),
     QualityExpressScraper(source_id=8),
+    NavarichScraper(source_id=9),
 ]
 
 
