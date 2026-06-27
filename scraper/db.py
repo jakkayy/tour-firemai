@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta, timezone
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from base_scraper import TourItem
@@ -50,3 +51,11 @@ def deactivate_missing(source_id: int, active_urls: list[str]) -> None:
     client.table("tours").update({"is_active": False}).eq(
         "source_id", source_id
     ).not_.in_("tour_url", active_urls).execute()
+
+
+def delete_stale_tours(days: int = 3) -> int:
+    """Delete inactive tours that have been gone for more than `days` days."""
+    client = get_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = client.table("tours").delete().eq("is_active", False).lt("updated_at", cutoff).execute()
+    return len(result.data) if result.data else 0

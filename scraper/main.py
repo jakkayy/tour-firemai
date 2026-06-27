@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from db import upsert_tours, deactivate_missing
+from db import upsert_tours, deactivate_missing, delete_stale_tours
 from scrapers.travelzeed import TravelzeedScraper
 from scrapers.thaifly import ThaiFlyScraper
 from scrapers.mushroom import MushroomScraper
@@ -43,6 +43,8 @@ async def run_scraper(scraper, retries: int = 2) -> bool:
 
 async def main():
     results = await asyncio.gather(*[run_scraper(s) for s in SCRAPERS])
+    deleted = delete_stale_tours(days=3)
+    print(f"[cleanup] deleted {deleted} stale tours")
     if not all(results):
         sys.exit(1)
 
