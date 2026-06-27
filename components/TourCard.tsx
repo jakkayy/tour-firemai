@@ -1,5 +1,6 @@
 import type { Tour } from "@/types/database";
 import { extractCountry } from "@/lib/countries";
+import TourImage from "./TourImage";
 
 type Props = {
   tour: Tour & { source_name?: string };
@@ -43,14 +44,7 @@ export default function TourCard({ tour, priority = false }: Props) {
       {/* Image */}
       <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
         {tour.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={tour.image_url}
-            alt={tour.title}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <TourImage src={tour.image_url} alt={tour.title} priority={priority} />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 gap-2">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4d4d8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
