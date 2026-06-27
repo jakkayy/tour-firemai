@@ -9,7 +9,20 @@ type Params = {
   min?: string;
   max?: string;
   sort?: string;
+  month?: string;
 };
+
+const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+function getMonthOptions() {
+  const now = new Date();
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = `${THAI_MONTHS_FULL[d.getMonth()]} ${d.getFullYear() + 543}`;
+    return { value, label };
+  });
+}
 
 type Props = {
   countries: string[];
@@ -44,9 +57,10 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   const [min, setMin] = useState(currentParams.min ?? "");
   const [max, setMax] = useState(currentParams.max ?? "");
   const [sort, setSort] = useState(currentParams.sort ?? "discount");
+  const [month, setMonth] = useState(currentParams.month ?? "");
 
   const activeFilters =
-    selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0);
+    selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0) + (month ? 1 : 0);
 
   function toggleCountry(c: string) {
     setSelected((prev) =>
@@ -60,6 +74,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     if (min) p.set("min", min);
     if (max) p.set("max", max);
     if (sort && sort !== "discount") p.set("sort", sort);
+    if (month) p.set("month", month);
     const qs = p.toString();
     return `/tours${qs ? `?${qs}` : ""}`;
   }
@@ -73,6 +88,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     setMin("");
     setMax("");
     setSort("discount");
+    setMonth("");
     router.push("/tours");
   }
 
@@ -109,6 +125,28 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Month */}
+        <div className="mb-5">
+          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
+            เดือนที่ต้องการเดินทาง
+          </label>
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400 bg-white text-zinc-700"
+          >
+            <option value="">ทุกเดือน</option>
+            {getMonthOptions().map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          {month && (
+            <p className="text-xs text-zinc-400 mt-1.5">
+              ทัวร์ที่ไม่มีข้อมูลวันเดินทางจะไม่แสดง
+            </p>
+          )}
         </div>
 
         {/* Price range */}

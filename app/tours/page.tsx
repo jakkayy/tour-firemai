@@ -19,6 +19,7 @@ type Params = {
   max?: string;
   sort?: string;
   page?: string;
+  month?: string;
 };
 
 export async function generateMetadata({
@@ -71,6 +72,14 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
     } else if (list.length > 1) {
       query = query.or(list.map((c) => `title.ilike.%${c}%`).join(","));
     }
+  }
+
+  if (params.month && /^\d{4}-\d{2}$/.test(params.month)) {
+    const [y, m] = params.month.split("-").map(Number);
+    const firstDay = `${y}-${String(m).padStart(2, "0")}-01`;
+    const lastDay = new Date(y, m, 0).getDate();
+    const lastDayStr = `${y}-${String(m).padStart(2, "0")}-${lastDay}`;
+    query = query.gte("departure_date", firstDay).lte("departure_date", lastDayStr);
   }
 
   if (params.min) query = query.gte("discounted_price", Number(params.min));
