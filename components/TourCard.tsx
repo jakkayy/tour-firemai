@@ -99,7 +99,9 @@ export default function TourCard({ tour, priority = false }: Props) {
               </p>
             )}
             <p className="text-lg font-bold text-red-500 leading-none">
-              {price ? `฿${formatPrice(price)}` : "ติดต่อสอบถาม"}
+              {price ? (
+                <>฿{formatPrice(price)}<span className="text-xs font-normal text-zinc-400 ml-1">/ ท่าน</span></>
+              ) : "ติดต่อสอบถาม"}
             </p>
             {tour.original_price && tour.discounted_price && (
               <p className="text-xs text-teal-600 font-medium mt-0.5">

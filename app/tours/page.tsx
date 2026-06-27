@@ -127,7 +127,7 @@ export default async function ToursPage({
             </p>
           </div>
 
-          <div className="flex gap-7">
+          <div className="flex flex-col md:flex-row gap-7">
             <FilterSidebar countries={availableCountries} currentParams={params} />
 
             <div className="flex-1 min-w-0">

@@ -34,6 +34,7 @@ function SearchIcon() {
 
 export default function FilterSidebar({ countries, currentParams }: Props) {
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const initialSelected = currentParams.countries
     ? currentParams.countries.split(",").filter(Boolean)
@@ -43,6 +44,9 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   const [min, setMin] = useState(currentParams.min ?? "");
   const [max, setMax] = useState(currentParams.max ?? "");
   const [sort, setSort] = useState(currentParams.sort ?? "discount");
+
+  const activeFilters =
+    selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0);
 
   function toggleCountry(c: string) {
     setSelected((prev) =>
@@ -72,14 +76,9 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     router.push("/tours");
   }
 
-  return (
-    <aside className="w-64 shrink-0 hidden md:block">
-      <div className="bg-white rounded-2xl p-5 shadow-sm sticky top-20">
-        <div className="flex items-center gap-2 mb-5">
-          <span className="text-teal-600"><FilterIcon /></span>
-          <h2 className="font-semibold text-zinc-900">ตัวกรองขั้นสูง</h2>
-        </div>
-
+  function FilterContent() {
+    return (
+      <>
         {/* Country checkboxes */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2.5">
@@ -97,10 +96,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
           </div>
           <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
             {countries.map((c) => (
-              <label
-                key={c}
-                className="flex items-center gap-2.5 cursor-pointer group py-0.5"
-              >
+              <label key={c} className="flex items-center gap-2.5 cursor-pointer group py-0.5">
                 <input
                   type="checkbox"
                   checked={selected.includes(c)}
@@ -154,22 +150,103 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
             onChange={setSort}
           />
         </div>
+      </>
+    );
+  }
 
+  return (
+    <>
+      {/* ── Mobile trigger ── */}
+      <div className="md:hidden">
         <button
-          onClick={apply}
-          className="w-full bg-slate-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+          onClick={() => setMobileOpen(true)}
+          className="w-full flex items-center justify-between bg-white border border-zinc-200 rounded-xl px-4 py-3 shadow-sm"
         >
-          <SearchIcon />
-          ค้นหาทัวร์
+          <span className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
+            <span className="text-teal-600"><FilterIcon /></span>
+            กรองทัวร์
+          </span>
+          {activeFilters > 0 ? (
+            <span className="bg-teal-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+              {activeFilters} ตัวกรอง
+            </span>
+          ) : (
+            <span className="text-xs text-zinc-400">แตะเพื่อกรอง</span>
+          )}
         </button>
 
-        <button
-          onClick={clear}
-          className="w-full mt-2 text-xs text-zinc-400 hover:text-zinc-600 transition-colors py-1.5"
+        {/* Backdrop */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+
+        {/* Bottom sheet */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[85vh] overflow-y-auto transition-transform duration-300 ease-out ${
+            mobileOpen ? "translate-y-0" : "translate-y-full"
+          }`}
         >
-          ล้างตัวกรองทั้งหมด
-        </button>
+          <div className="p-5">
+            {/* Handle */}
+            <div className="w-10 h-1 bg-zinc-300 rounded-full mx-auto mb-5" />
+
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-semibold text-zinc-900 text-base">ตัวกรองขั้นสูง</h2>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 transition-colors text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <FilterContent />
+
+            <button
+              onClick={() => { apply(); setMobileOpen(false); }}
+              className="w-full bg-slate-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <SearchIcon />
+              ค้นหาทัวร์
+            </button>
+            <button
+              onClick={() => { clear(); setMobileOpen(false); }}
+              className="w-full mt-2 text-xs text-zinc-400 hover:text-zinc-600 transition-colors py-1.5"
+            >
+              ล้างตัวกรองทั้งหมด
+            </button>
+          </div>
+        </div>
       </div>
-    </aside>
+
+      {/* ── Desktop sidebar ── */}
+      <aside className="w-64 shrink-0 hidden md:block">
+        <div className="bg-white rounded-2xl p-5 shadow-sm sticky top-20">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="text-teal-600"><FilterIcon /></span>
+            <h2 className="font-semibold text-zinc-900">ตัวกรองขั้นสูง</h2>
+          </div>
+
+          <FilterContent />
+
+          <button
+            onClick={apply}
+            className="w-full bg-slate-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <SearchIcon />
+            ค้นหาทัวร์
+          </button>
+          <button
+            onClick={clear}
+            className="w-full mt-2 text-xs text-zinc-400 hover:text-zinc-600 transition-colors py-1.5"
+          >
+            ล้างตัวกรองทั้งหมด
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
