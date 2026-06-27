@@ -22,7 +22,7 @@ function SkeletonCard() {
 
 function SkeletonSidebar() {
   return (
-    <aside className="w-56 shrink-0 hidden md:block">
+    <aside className="w-64 shrink-0 hidden md:block">
       <div className="bg-white rounded-2xl p-5 shadow-sm">
         <div className="h-5 w-16 bg-zinc-200 rounded animate-pulse mb-5" />
         {[100, 80, 90].map((w, i) => (
