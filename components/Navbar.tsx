@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./Logo";
+import MobileMenu from "./MobileMenu";
 
 export default function Navbar() {
   return (
@@ -13,6 +14,8 @@ export default function Navbar() {
           <Link href="/" className="hover:text-blue-700 transition-colors">หน้าแรก</Link>
           <Link href="/tours" className="hover:text-blue-700 transition-colors">ทัวร์ทั้งหมด</Link>
         </div>
+
+        <MobileMenu />
       </div>
     </nav>
   );
