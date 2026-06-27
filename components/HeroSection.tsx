@@ -22,16 +22,17 @@ const SORT_OPTIONS = [
   { value: "date", label: "วันเดินทางใกล้สุด" },
 ];
 
-const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+const THAI_MONTHS_ABBR = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 function getMonthOptions() {
   const now = new Date();
   const opts = [{ value: "", label: "ทุกเดือน" }];
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const beYear = String(d.getFullYear() + 543).slice(-2);
     opts.push({
       value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
-      label: `${THAI_MONTHS_FULL[d.getMonth()]} ${d.getFullYear() + 543}`,
+      label: `${THAI_MONTHS_ABBR[d.getMonth()]} ${beYear}`,
     });
   }
   return opts;

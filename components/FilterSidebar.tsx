@@ -12,16 +12,20 @@ type Params = {
   month?: string;
 };
 
-const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+const THAI_MONTHS_ABBR = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 function getMonthOptions() {
   const now = new Date();
-  return Array.from({ length: 12 }, (_, i) => {
+  const opts = [{ value: "", label: "ทุกเดือน" }];
+  for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = `${THAI_MONTHS_FULL[d.getMonth()]} ${d.getFullYear() + 543}`;
-    return { value, label };
-  });
+    const beYear = String(d.getFullYear() + 543).slice(-2);
+    opts.push({
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: `${THAI_MONTHS_ABBR[d.getMonth()]} ${beYear}`,
+    });
+  }
+  return opts;
 }
 
 type Props = {
@@ -132,16 +136,12 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
           <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
             เดือนที่ต้องการเดินทาง
           </label>
-          <select
+          <Dropdown
+            options={getMonthOptions()}
             value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400 bg-white text-zinc-700"
-          >
-            <option value="">ทุกเดือน</option>
-            {getMonthOptions().map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            onChange={setMonth}
+            placeholder="ทุกเดือน"
+          />
           {month && (
             <p className="text-xs text-zinc-400 mt-1.5">
               ทัวร์ที่ไม่มีข้อมูลวันเดินทางจะไม่แสดง

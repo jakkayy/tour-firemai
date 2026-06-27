@@ -84,7 +84,7 @@ export default function Dropdown({
         onClick={() => setOpen((v) => !v)}
         className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border text-sm transition-colors outline-none ${triggerClass}`}
       >
-        <span className={selected ? "" : placeholderClass}>
+        <span className={`truncate ${selected ? "" : placeholderClass}`}>
           {selected ? selected.label : placeholder}
         </span>
         <Chevron open={open} />
