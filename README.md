@@ -1,8 +1,8 @@
-# ทัวร์ไฟไหม้
+# Tour Firemai
 
-รวมทัวร์ลดราคาก่อนวันเดินทาง ดึงข้อมูลอัตโนมัติจากเว็บทัวร์ชั้นนำทุก 6 ชั่วโมง
+Aggregates last-minute discounted tours from leading Thai travel agencies, updated automatically every 6 hours.
 
-**ทัวร์ไฟไหม้** คือทัวร์ที่ใกล้ถึงวันเดินทางแต่ที่นั่งยังไม่เต็ม บริษัททัวร์จึงลดราคาเพื่อเติมที่นั่งให้ครบ โปรเจคนี้ทำหน้าที่รวบรวมทัวร์เหล่านั้นไว้ในที่เดียว
+**Tour Firemai** (ทัวร์ไฟไหม้) refers to tours close to their departure date that still have empty seats — travel companies slash prices to fill them. This project collects those deals in one place.
 
 🌐 **Live:** https://tour-firemai.vercel.app
 
@@ -10,12 +10,12 @@
 
 ## Tech Stack
 
-| ส่วน | เทคโนโลยี |
+| Layer | Technology |
 |---|---|
 | Frontend | Next.js 16 (App Router), Tailwind CSS v4 |
 | Database | Supabase (PostgreSQL + RLS) |
 | Scraper | Python 3.12 + Playwright |
-| Scheduler | GitHub Actions (cron ทุก 6 ชั่วโมง) |
+| Scheduler | GitHub Actions (cron every 6 hours) |
 | Hosting | Vercel (ISR) |
 | Analytics | Vercel Analytics + Microsoft Clarity |
 
@@ -24,28 +24,28 @@
 ## Features
 
 **Frontend**
-- รวมทัวร์จาก 6 เว็บทัวร์ชั้นนำโดยอัตโนมัติ
-- กรองตามประเทศปลายทาง (multi-select), เดือนเดินทาง, ช่วงราคา, และการเรียงลำดับ
-- แสดงส่วนลด, ราคาต้นทาง, และวันเดินทาง
-- Image fallback เมื่อโหลดรูปไม่ได้
-- Mobile-friendly พร้อม filter drawer บนมือถือ
-- ISR cache 6 ชั่วโมง — เร็ว ไม่กระทบ Supabase quota
-- Error boundary ทุกหน้า, 404 page, loading skeleton
-- SEO: sitemap, robots.txt, dynamic metadata ตามตัวกรอง
+- Aggregates tours from 6 travel websites automatically
+- Filter by destination (multi-select), departure month, price range, and sort order
+- Displays discount percentage, original price, and departure date
+- Image fallback when tour photo fails to load
+- Mobile-friendly with a filter drawer on small screens
+- ISR cache (6 hours) — fast response, minimal Supabase usage
+- Error boundaries on every page, 404 page, loading skeletons
+- SEO: sitemap, robots.txt, dynamic metadata based on active filters
 
 **Scraper**
-- retry อัตโนมัติ 2 ครั้งเมื่อ scrape ล้ม พร้อม backoff 30s / 60s
-- แจ้งเตือนทาง email เมื่อ scraper fail (GitHub Actions)
-- ลบทัวร์ที่ inactive เกิน 3 วันอัตโนมัติหลังแต่ละ run
+- Retries up to 2 times on failure with 30s / 60s backoff
+- Email notification via GitHub Actions when a scraper fails
+- Deletes tours inactive for more than 3 days after each run
 
 **Security**
-- Row Level Security (RLS) บน Supabase
+- Row Level Security (RLS) on Supabase
 - Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
-- Country filter whitelist ป้องกัน injection
+- Country filter whitelist to prevent query injection
 
 ---
 
-## โครงสร้างโปรเจค
+## Project Structure
 
 ```
 tour-firemai/
@@ -64,9 +64,9 @@ tour-firemai/
 ├── components/
 │   ├── Navbar.tsx
 │   ├── MobileMenu.tsx
-│   ├── HeroSection.tsx       # Search bar + 4 dropdowns
+│   ├── HeroSection.tsx       # Search bar with 4 dropdowns
 │   ├── TourCard.tsx
-│   ├── TourImage.tsx         # Client component พร้อม image fallback
+│   ├── TourImage.tsx         # Client component with image fallback
 │   ├── FilterSidebar.tsx     # Desktop sidebar + mobile drawer
 │   ├── Dropdown.tsx
 │   ├── Pagination.tsx
@@ -80,7 +80,7 @@ tour-firemai/
 ├── scraper/
 │   ├── main.py               # Entry point + retry logic + cleanup
 │   ├── base_scraper.py       # Abstract base class
-│   ├── db.py                 # Supabase upsert + stale tour cleanup
+│   ├── db.py                 # Supabase upsert + stale tour deletion
 │   ├── requirements.txt
 │   ├── scrapers/
 │   │   ├── travelzeed.py     # source_id=4
@@ -91,7 +91,7 @@ tour-firemai/
 │   │   └── navarich.py       # source_id=9
 │   └── tests/
 │       ├── conftest.py
-│       └── test_parsers.py   # 54 test cases ครอบคลุมทุก scraper
+│       └── test_parsers.py   # 54 test cases covering all scrapers
 ├── supabase/migrations/
 │   ├── 001_initial_schema.sql
 │   ├── 002_add_tour_url_unique.sql
@@ -99,20 +99,20 @@ tour-firemai/
 │   ├── 004_add_navarich_source.sql
 │   └── 005_enable_rls.sql
 └── .github/workflows/
-    ├── ci.yml                # pytest ทุก push/PR
+    ├── ci.yml                # pytest on every push/PR
     └── scrape.yml            # cron: 0 */6 * * *
 ```
 
 ---
 
-## การติดตั้ง (Local Development)
+## Local Development
 
 ### Frontend
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# แก้ไข .env.local ใส่ Supabase URL + Anon Key
+# Fill in your Supabase URL and Anon Key
 npm run dev
 ```
 
@@ -126,7 +126,7 @@ pip install -r requirements.txt
 playwright install chromium
 
 cp .env.example .env
-# แก้ไข .env ใส่ SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+# Fill in SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
 python main.py
 ```
 
@@ -157,16 +157,16 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ### GitHub Actions Secrets
 
-| Secret | คำอธิบาย |
+| Secret | Description |
 |---|---|
-| `SUPABASE_URL` | URL ของ Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (ไม่ใช่ anon key) |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (not the anon key) |
 
 ---
 
 ## Database Setup
 
-รัน SQL ต่อไปนี้ใน Supabase SQL Editor ตามลำดับ:
+Run the following SQL files in Supabase SQL Editor in order:
 
 ```
 supabase/migrations/001_initial_schema.sql
@@ -181,7 +181,7 @@ supabase/migrations/005_enable_rls.sql
 ## Deployment
 
 1. Push to GitHub
-2. Import repo ใน [Vercel](https://vercel.com) → Framework: Next.js
-3. เพิ่ม Environment Variables ใน Vercel project settings
-4. เพิ่ม Secrets ใน GitHub repository settings
-5. รัน scraper ครั้งแรกด้วยตัวเอง: GitHub Actions → Scrape Tours → Run workflow
+2. Import the repo in [Vercel](https://vercel.com) → Framework: Next.js
+3. Add environment variables in Vercel project settings
+4. Add secrets in GitHub repository settings
+5. Trigger the first scraper run manually: GitHub Actions → Scrape Tours → Run workflow
