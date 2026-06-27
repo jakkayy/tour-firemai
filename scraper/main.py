@@ -4,12 +4,13 @@ from db import upsert_tours, deactivate_missing
 from scrapers.travelzeed import TravelzeedScraper
 from scrapers.thaifly import ThaiFlyScraper
 from scrapers.mushroom import MushroomScraper
+from scrapers.unithai import UniThaiScraper
 
 # source_id ตรงกับ seed ใน 001_initial_schema.sql (ลำดับ insert)
 # nidnoitravel (3): listing page ไม่มี title ต้องแก้เพิ่ม
-# unithaitravel (5): fire-sale อยู่บน LINE เท่านั้น ไม่มีหน้าเว็บ
 SCRAPERS = [
     TravelzeedScraper(source_id=4),
+    UniThaiScraper(source_id=5),
     MushroomScraper(source_id=6),
     ThaiFlyScraper(source_id=7),
 ]
