@@ -35,9 +35,7 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   if (params.countries) {
     const list = params.countries
       .split(",")
-      .map((c) => c.replace(/[^ก-๙a-zA-Z\s]/g, "").trim())
-      .filter(Boolean)
-      .slice(0, 20);
+      .filter((c) => COUNTRY_LIST.includes(c));
     if (list.length === 1) {
       query = query.ilike("title", `%${list[0]}%`);
     } else if (list.length > 1) {

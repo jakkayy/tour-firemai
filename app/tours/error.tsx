@@ -1,0 +1,29 @@
+"use client";
+
+import Link from "next/link";
+
+export default function Error({ reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center px-4">
+      <div className="text-center">
+        <p className="text-5xl font-bold text-zinc-200 mb-4">500</p>
+        <h1 className="text-xl font-semibold text-zinc-800 mb-2">โหลดข้อมูลทัวร์ไม่สำเร็จ</h1>
+        <p className="text-sm text-zinc-500 mb-6">ระบบขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง</p>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={reset}
+            className="bg-teal-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-teal-400 transition-colors"
+          >
+            ลองใหม่
+          </button>
+          <Link
+            href="/"
+            className="bg-zinc-100 text-zinc-700 px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-zinc-200 transition-colors"
+          >
+            หน้าแรก
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

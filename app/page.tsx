@@ -10,10 +10,11 @@ import Link from "next/link";
 type TourWithSource = Tour & { source_name: string };
 
 async function getTourCount(): Promise<number> {
-  const { count } = await supabase
+  const { count, error } = await supabase
     .from("tours")
     .select("*", { count: "exact", head: true })
     .eq("is_active", true);
+  if (error) console.error("getTourCount error:", error);
   return count ?? 0;
 }
 
