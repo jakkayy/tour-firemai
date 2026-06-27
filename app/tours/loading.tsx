@@ -1,5 +1,4 @@
 import Navbar from "@/components/Navbar";
-import SiteFooter from "@/components/SiteFooter";
 
 function SkeletonCard() {
   return (
@@ -63,7 +62,6 @@ export default function Loading() {
         </div>
       </div>
 
-      <SiteFooter />
     </>
   );
 }

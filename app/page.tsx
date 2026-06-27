@@ -5,7 +5,6 @@ import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import TourCard from "@/components/TourCard";
-import SiteFooter from "@/components/SiteFooter";
 import Link from "next/link";
 
 type TourWithSource = Tour & { source_name: string };
@@ -98,7 +97,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <SiteFooter />
 
     </>
   );

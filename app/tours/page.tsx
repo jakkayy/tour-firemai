@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
-import SiteFooter from "@/components/SiteFooter";
 import TourCard from "@/components/TourCard";
 import FilterSidebar from "@/components/FilterSidebar";
 import Pagination from "@/components/Pagination";
@@ -138,7 +137,6 @@ export default async function ToursPage({
         </div>
       </div>
 
-      <SiteFooter />
     </>
   );
 }
