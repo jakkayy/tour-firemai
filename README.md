@@ -130,6 +130,19 @@ tour-firemai/
 
 ---
 
+## Tests
+
+Unit tests ครอบคลุม parsing functions ของทุก scraper (price, departure date)
+
+```bash
+cd scraper
+pytest tests/ -v
+```
+
+CI รัน test อัตโนมัติทุกครั้งที่ push หรือ open PR ไปที่ branch `main`
+
+---
+
 ## Deployment
 
 1. Push to GitHub
