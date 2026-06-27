@@ -22,6 +22,21 @@ const SORT_OPTIONS = [
   { value: "date", label: "วันเดินทางใกล้สุด" },
 ];
 
+const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+function getMonthOptions() {
+  const now = new Date();
+  const opts = [{ value: "", label: "ทุกเดือน" }];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    opts.push({
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: `${THAI_MONTHS_FULL[d.getMonth()]} ${d.getFullYear() + 543}`,
+    });
+  }
+  return opts;
+}
+
 function SearchIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -36,6 +51,7 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
   const [country, setCountry] = useState(selectedCountry ?? "");
   const [budget, setBudget] = useState("");
   const [sort, setSort] = useState("discount");
+  const [month, setMonth] = useState("");
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +62,7 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
     else if (budget === "20000-50000") { p.set("min", "20000"); p.set("max", "50000"); }
     else if (budget === "50000+") p.set("min", "50000");
     if (sort && sort !== "discount") p.set("sort", sort);
+    if (month) p.set("month", month);
     const qs = p.toString();
     router.push(`/tours${qs ? `?${qs}` : ""}`);
   }
@@ -98,6 +115,15 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
             value={budget}
             onChange={setBudget}
             placeholder="งบประมาณ"
+            className="flex-1"
+          />
+
+          <Dropdown
+            variant="light"
+            options={getMonthOptions()}
+            value={month}
+            onChange={setMonth}
+            placeholder="ทุกเดือน"
             className="flex-1"
           />
 
