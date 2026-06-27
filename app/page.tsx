@@ -19,7 +19,7 @@ async function getTourCount(): Promise<number> {
 }
 
 async function getFeaturedTours(): Promise<TourWithSource[]> {
-  const { data, error } = await supabase
+  const res = await supabase
     .from("tours")
     .select("*, sources(name)")
     .eq("is_active", true)
@@ -28,9 +28,10 @@ async function getFeaturedTours(): Promise<TourWithSource[]> {
     .order("discount_percent", { ascending: false })
     .limit(6);
 
-  if (error) console.error("getFeaturedTours error:", error);
+  if (res.error) throw new Error(`getFeaturedTours: ${res.error.message}`);
 
-  return (data ?? []).map((row: Tour & { sources: { name: string } | null }) => ({
+  const rows = (res.data ?? []) as Array<Tour & { sources: { name: string } | null }>;
+  return rows.map((row) => ({
     ...row,
     source_name: row.sources?.name ?? "",
   }));

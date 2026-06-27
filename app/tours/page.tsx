@@ -96,7 +96,7 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   }
 
   const { data, count, error } = await query.range(from, to);
-  if (error) console.error("getTours error:", error);
+  if (error) throw new Error(`getTours: ${error.message}`);
 
   return {
     tours: (data ?? []).map((row: Tour & { sources: { name: string } | null }) => ({
