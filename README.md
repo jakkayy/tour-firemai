@@ -4,7 +4,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 
 **Tour Firemai** (ทัวร์ไฟไหม้) refers to tours close to their departure date that still have empty seats — travel companies slash prices to fill them. This project collects those deals in one place.
 
-🌐 **Live:** https://tour-firemai.vercel.app
+**Live:** https://tour-firemai.vercel.app
 
 ---
 
