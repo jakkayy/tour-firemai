@@ -20,6 +20,7 @@ type Params = {
   sort?: string;
   page?: string;
   month?: string;
+  q?: string;
 };
 
 export async function generateMetadata({
@@ -62,6 +63,10 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
     .from("tours")
     .select("*, sources(name)", { count: "exact" })
     .eq("is_active", true);
+
+  if (params.q) {
+    query = query.ilike("title", `%${params.q}%`);
+  }
 
   if (params.countries) {
     const list = params.countries
