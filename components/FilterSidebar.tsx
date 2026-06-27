@@ -33,6 +33,120 @@ type Props = {
   currentParams: Params;
 };
 
+type FilterContentProps = {
+  countries: string[];
+  selected: string[];
+  setSelected: (v: string[]) => void;
+  toggleCountry: (c: string) => void;
+  min: string;
+  setMin: (v: string) => void;
+  max: string;
+  setMax: (v: string) => void;
+  sort: string;
+  setSort: (v: string) => void;
+  month: string;
+  setMonth: (v: string) => void;
+};
+
+function FilterContent({
+  countries, selected, setSelected, toggleCountry,
+  min, setMin, max, setMax, sort, setSort, month, setMonth,
+}: FilterContentProps) {
+  return (
+    <>
+      {/* Country checkboxes */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-2.5">
+          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+            จุดหมายปลายทาง
+          </label>
+          {selected.length > 0 && (
+            <button
+              onClick={() => setSelected([])}
+              className="text-xs text-teal-600 hover:text-teal-500 font-medium"
+            >
+              ล้าง ({selected.length})
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+          {countries.map((c) => (
+            <label key={c} className="flex items-center gap-2.5 cursor-pointer group py-0.5">
+              <input
+                type="checkbox"
+                checked={selected.includes(c)}
+                onChange={() => toggleCountry(c)}
+                className="w-4 h-4 rounded border-zinc-300 accent-teal-500 cursor-pointer"
+              />
+              <span className="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">
+                {c}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Month */}
+      <div className="mb-5">
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
+          เดือนที่ต้องการเดินทาง
+        </label>
+        <Dropdown
+          options={getMonthOptions()}
+          value={month}
+          onChange={setMonth}
+          placeholder="ทุกเดือน"
+        />
+        {month && (
+          <p className="text-xs text-zinc-400 mt-1.5">
+            ทัวร์ที่ไม่มีข้อมูลวันเดินทางจะไม่แสดง
+          </p>
+        )}
+      </div>
+
+      {/* Price range */}
+      <div className="mb-5">
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
+          ช่วงราคา (฿)
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="ต่ำสุด"
+            value={min}
+            onChange={(e) => setMin(e.target.value)}
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400"
+          />
+          <input
+            type="number"
+            placeholder="สูงสุด"
+            value={max}
+            onChange={(e) => setMax(e.target.value)}
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400"
+          />
+        </div>
+      </div>
+
+      {/* Sort */}
+      <div className="mb-6">
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
+          เรียงลำดับตาม
+        </label>
+        <Dropdown
+          options={[
+            { value: "discount", label: "ส่วนลดสูงสุด" },
+            { value: "price_asc", label: "ราคา: น้อย → มาก" },
+            { value: "price_desc", label: "ราคา: มาก → น้อย" },
+            { value: "date", label: "วันเดินทางใกล้สุด" },
+          ]}
+          value={sort}
+          onChange={setSort}
+        />
+      </div>
+    </>
+  );
+}
+
 function FilterIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -96,101 +210,10 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     router.push("/tours");
   }
 
-  function FilterContent() {
-    return (
-      <>
-        {/* Country checkboxes */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2.5">
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
-              จุดหมายปลายทาง
-            </label>
-            {selected.length > 0 && (
-              <button
-                onClick={() => setSelected([])}
-                className="text-xs text-teal-600 hover:text-teal-500 font-medium"
-              >
-                ล้าง ({selected.length})
-              </button>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
-            {countries.map((c) => (
-              <label key={c} className="flex items-center gap-2.5 cursor-pointer group py-0.5">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(c)}
-                  onChange={() => toggleCountry(c)}
-                  className="w-4 h-4 rounded border-zinc-300 accent-teal-500 cursor-pointer"
-                />
-                <span className="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">
-                  {c}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Month */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
-            เดือนที่ต้องการเดินทาง
-          </label>
-          <Dropdown
-            options={getMonthOptions()}
-            value={month}
-            onChange={setMonth}
-            placeholder="ทุกเดือน"
-          />
-          {month && (
-            <p className="text-xs text-zinc-400 mt-1.5">
-              ทัวร์ที่ไม่มีข้อมูลวันเดินทางจะไม่แสดง
-            </p>
-          )}
-        </div>
-
-        {/* Price range */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
-            ช่วงราคา (฿)
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="ต่ำสุด"
-              value={min}
-              onChange={(e) => setMin(e.target.value)}
-              className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400"
-            />
-            <input
-              type="number"
-              placeholder="สูงสุด"
-              value={max}
-              onChange={(e) => setMax(e.target.value)}
-              className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400"
-            />
-          </div>
-        </div>
-
-        {/* Sort */}
-        <div className="mb-6">
-          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
-            เรียงลำดับตาม
-          </label>
-          <Dropdown
-            options={[
-              { value: "discount", label: "ส่วนลดสูงสุด" },
-              { value: "price_asc", label: "ราคา: น้อย → มาก" },
-              { value: "price_desc", label: "ราคา: มาก → น้อย" },
-              { value: "date", label: "วันเดินทางใกล้สุด" },
-            ]}
-            value={sort}
-            onChange={setSort}
-          />
-        </div>
-      </>
-    );
-  }
+  const filterContentProps: FilterContentProps = {
+    countries, selected, setSelected, toggleCountry,
+    min, setMin, max, setMax, sort, setSort, month, setMonth,
+  };
 
   return (
     <>
@@ -241,7 +264,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
               </button>
             </div>
 
-            <FilterContent />
+            <FilterContent {...filterContentProps} />
 
             <button
               onClick={() => { apply(); setMobileOpen(false); }}
@@ -268,7 +291,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
             <h2 className="font-semibold text-zinc-900">ตัวกรองขั้นสูง</h2>
           </div>
 
-          <FilterContent />
+          <FilterContent {...filterContentProps} />
 
           <button
             onClick={apply}
