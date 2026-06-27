@@ -70,23 +70,30 @@ export default function TourCard({ tour, priority = false }: Props) {
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-4">
-        <p className="text-xs font-medium text-blue-600 mb-1">{tour.source_name ?? "ทัวร์"}</p>
-        <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1 mb-3">
+        <span className="self-start inline-flex items-center text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-0.5 mb-2">
+          {tour.source_name ?? "ทัวร์"}
+        </span>
+        <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1 mb-4">
           {tour.title}
         </h2>
 
-        <div className="flex items-end justify-between gap-2">
+        <div className="border-t border-zinc-100 pt-3 flex items-end justify-between gap-2">
           <div>
             {tour.original_price && tour.discounted_price && (
-              <p className="text-xs text-zinc-400 line-through">
+              <p className="text-xs text-zinc-400 line-through leading-none mb-0.5">
                 ฿{formatPrice(tour.original_price)}
               </p>
             )}
-            <p className="text-xl font-bold text-amber-600">
+            <p className="text-lg font-bold text-zinc-900 leading-none">
               {price ? `฿${formatPrice(price)}` : "ติดต่อสอบถาม"}
             </p>
+            {tour.original_price && tour.discounted_price && (
+              <p className="text-xs text-teal-600 font-medium mt-0.5">
+                ประหยัด ฿{formatPrice(tour.original_price - tour.discounted_price)}
+              </p>
+            )}
           </div>
-          <span className="shrink-0 text-xs font-medium text-teal-700 border border-teal-200 bg-teal-50 px-3 py-1.5 rounded-xl group-hover:bg-teal-100 transition-colors">
+          <span className="shrink-0 text-xs font-semibold text-white bg-teal-500 px-3.5 py-2 rounded-xl group-hover:bg-teal-400 transition-colors">
             ดูทัวร์ ↗
           </span>
         </div>

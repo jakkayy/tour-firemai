@@ -98,13 +98,16 @@ export default async function ToursPage({
     <>
       <Navbar />
 
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <p className="text-xs font-semibold text-teal-400 uppercase tracking-widest mb-2">Flash Deals</p>
+          <h1 className="text-3xl font-bold text-white">{heading}</h1>
+          <p className="text-slate-400 text-sm mt-1">พบ <span className="text-white font-semibold">{total}</span> รายการ</p>
+        </div>
+      </div>
+
       <div className="bg-zinc-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-zinc-900">{heading}</h1>
-            <p className="text-zinc-500 text-sm mt-1">พบ {total} รายการ</p>
-          </div>
-
           <div className="flex gap-7">
             <FilterSidebar countries={countries} currentParams={params} />
 

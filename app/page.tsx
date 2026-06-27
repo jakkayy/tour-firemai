@@ -35,10 +35,31 @@ export default async function Home() {
       <Navbar />
       <HeroSection />
 
-      <section className="bg-white py-16">
+      {/* Stat strip */}
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-6 text-xs text-slate-400 flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
+            รวบรวมจาก <span className="text-white font-semibold">4 เว็บทัวร์</span>
+          </span>
+          <span className="text-slate-600 hidden sm:inline">|</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+            อัปเดตอัตโนมัติ <span className="text-white font-semibold">ทุก 6 ชั่วโมง</span>
+          </span>
+          <span className="text-slate-600 hidden sm:inline">|</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+            ทัวร์ทั้งหมด <span className="text-white font-semibold">275+ รายการ</span>
+          </span>
+        </div>
+      </div>
+
+      <section className="bg-zinc-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-end justify-between mb-8">
             <div>
+              <p className="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-2">Flash Deals</p>
               <h2 className="text-3xl font-bold text-zinc-900">ทัวร์ลดราคาสูงสุด</h2>
               <p className="text-zinc-500 text-sm mt-1">
                 คัดสรรทัวร์ไฟไหม้ที่ลดราคาสูงสุดจากทุกแหล่ง
@@ -46,7 +67,7 @@ export default async function Home() {
             </div>
             <Link
               href="/tours"
-              className="text-sm font-medium text-blue-700 hover:underline whitespace-nowrap"
+              className="text-sm font-semibold text-teal-700 hover:text-teal-600 transition-colors whitespace-nowrap"
             >
               ดูทั้งหมด →
             </Link>
@@ -78,6 +99,7 @@ export default async function Home() {
       </section>
 
       <SiteFooter />
+
     </>
   );
 }
