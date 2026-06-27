@@ -18,9 +18,10 @@
 
 ## Features
 
-- รวมทัวร์จาก TravelZeed และ ThaiFly โดยอัตโนมัติ
-- กรองตามประเทศปลายทาง, งบประมาณ, และการเรียงลำดับ
+- รวมทัวร์จาก 6 เว็บทัวร์ชั้นนำโดยอัตโนมัติ
+- กรองตามประเทศปลายทาง (multi-select), งบประมาณ, และการเรียงลำดับ
 - แสดงส่วนลด, ราคาต้นทาง, และวันเดินทาง
+- Mobile-friendly พร้อม filter drawer บนมือถือ
 - ISR cache 6 ชั่วโมง — เร็ว ไม่กระทบ Supabase quota
 
 ---
@@ -79,16 +80,13 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ## Database Setup
 
-รัน SQL ต่อไปนี้ใน Supabase SQL Editor:
+รัน SQL ต่อไปนี้ใน Supabase SQL Editor ตามลำดับ:
 
-```sql
--- สร้างตาราง
--- ดูไฟล์: supabase/migrations/001_initial_schema.sql
--- และ:    supabase/migrations/002_add_tour_url_unique.sql
-
--- เปิด public read access
-create policy "public read tours" on tours for select using (true);
-create policy "public read sources" on sources for select using (true);
+```
+supabase/migrations/001_initial_schema.sql   — สร้างตาราง + seed sources เดิม
+supabase/migrations/002_add_tour_url_unique.sql
+supabase/migrations/003_add_quality_express_source.sql
+supabase/migrations/004_add_navarich_source.sql
 ```
 
 ---
@@ -98,30 +96,36 @@ create policy "public read sources" on sources for select using (true);
 ```
 tour-firemai/
 ├── app/
-│   ├── page.tsx          # Homepage — top discounted tours
-│   ├── tours/page.tsx    # Listing page — filter + pagination
-│   └── icon.svg          # Favicon
+│   ├── page.tsx           # Homepage — top discounted tours
+│   ├── tours/page.tsx     # Listing page — filter + pagination
+│   ├── loading.tsx        # Homepage skeleton
+│   ├── tours/loading.tsx  # Tours page skeleton
+│   └── icon.svg           # Favicon
 ├── components/
 │   ├── Navbar.tsx
+│   ├── MobileMenu.tsx     # Hamburger menu สำหรับมือถือ
 │   ├── HeroSection.tsx
 │   ├── TourCard.tsx
-│   ├── FilterSidebar.tsx
-│   ├── Dropdown.tsx      # Custom dropdown component
+│   ├── FilterSidebar.tsx  # Desktop sidebar + mobile drawer
+│   ├── Dropdown.tsx
 │   ├── Pagination.tsx
-│   ├── Logo.tsx
-│   └── SiteFooter.tsx
+│   └── Logo.tsx
 ├── scraper/
-│   ├── main.py           # Entry point
-│   ├── base_scraper.py   # Abstract base class
-│   ├── db.py             # Supabase writer
+│   ├── main.py            # Entry point
+│   ├── base_scraper.py    # Abstract base class
+│   ├── db.py              # Supabase writer
 │   └── scrapers/
-│       ├── travelzeed.py
-│       └── thaifly.py
+│       ├── travelzeed.py  # TravelZeed Fire (source_id=4)
+│       ├── unithai.py     # Uni Thai Travel (source_id=5)
+│       ├── mushroom.py    # Mushroom Travel (source_id=6)
+│       ├── thaifly.py     # Thai Fly (source_id=7)
+│       ├── qualityexpress.py  # Quality Express (source_id=8)
+│       └── navarich.py    # Navarich Travel (source_id=9)
 ├── lib/
 │   ├── supabase.ts
-│   └── countries.ts      # Country keyword extraction
+│   └── countries.ts
 └── .github/workflows/
-    └── scrape.yml        # Cron: 0 */6 * * *
+    └── scrape.yml         # Cron: 0 */6 * * *
 ```
 
 ---
