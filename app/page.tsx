@@ -24,6 +24,7 @@ async function getFeaturedTours(): Promise<TourWithSource[]> {
     .select("*, sources(name)")
     .eq("is_active", true)
     .not("discount_percent", "is", null)
+    .not("image_url", "is", null)
     .order("discount_percent", { ascending: false })
     .limit(6);
 
