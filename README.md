@@ -87,6 +87,7 @@ supabase/migrations/001_initial_schema.sql   — สร้างตาราง 
 supabase/migrations/002_add_tour_url_unique.sql
 supabase/migrations/003_add_quality_express_source.sql
 supabase/migrations/004_add_navarich_source.sql
+supabase/migrations/005_enable_rls.sql       — เปิด RLS + public read policy (ต้องรันก่อน production)
 ```
 
 ---
