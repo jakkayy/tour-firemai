@@ -9,6 +9,7 @@ import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourCard from "@/components/TourCard";
 import FilterSidebar from "@/components/FilterSidebar";
+import TourSearchBar from "@/components/TourSearchBar";
 import Pagination from "@/components/Pagination";
 
 const PER_PAGE = 12;
@@ -177,6 +178,7 @@ export default async function ToursPage({
             <FilterSidebar countries={availableCountries} currentParams={params} />
 
             <div className="flex-1 min-w-0">
+              <TourSearchBar initialQ={params.q ?? ""} />
               {tours.length === 0 ? (
                 <div className="text-center py-24">
                   <p className="text-lg font-medium text-zinc-600">ไม่พบทัวร์ที่ตรงกับเงื่อนไข</p>

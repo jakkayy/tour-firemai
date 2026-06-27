@@ -47,30 +47,14 @@ type FilterContentProps = {
   setSort: (v: string) => void;
   month: string;
   setMonth: (v: string) => void;
-  q: string;
-  setQ: (v: string) => void;
 };
 
 function FilterContent({
   countries, selected, setSelected, toggleCountry,
-  min, setMin, max, setMax, sort, setSort, month, setMonth, q, setQ,
+  min, setMin, max, setMax, sort, setSort, month, setMonth,
 }: FilterContentProps) {
   return (
     <>
-      {/* Keyword search */}
-      <div className="mb-5">
-        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
-          ค้นหาชื่อทัวร์
-        </label>
-        <input
-          type="text"
-          placeholder="เช่น ญี่ปุ่น โอซาก้า..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-teal-400"
-        />
-      </div>
-
       {/* Country checkboxes */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2.5">
@@ -193,10 +177,9 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   const [max, setMax] = useState(currentParams.max ?? "");
   const [sort, setSort] = useState(currentParams.sort ?? "discount");
   const [month, setMonth] = useState(currentParams.month ?? "");
-  const [q, setQ] = useState(currentParams.q ?? "");
 
   const activeFilters =
-    selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0) + (month ? 1 : 0) + (q ? 1 : 0);
+    selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0) + (month ? 1 : 0);
 
   function toggleCountry(c: string) {
     setSelected((prev) =>
@@ -206,7 +189,6 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
 
   function buildUrl() {
     const p = new URLSearchParams();
-    if (q) p.set("q", q);
     if (selected.length > 0) p.set("countries", selected.join(","));
     if (min) p.set("min", min);
     if (max) p.set("max", max);
@@ -226,13 +208,12 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     setMax("");
     setSort("discount");
     setMonth("");
-    setQ("");
     router.push("/tours");
   }
 
   const filterContentProps: FilterContentProps = {
     countries, selected, setSelected, toggleCountry,
-    min, setMin, max, setMax, sort, setSort, month, setMonth, q, setQ,
+    min, setMin, max, setMax, sort, setSort, month, setMonth,
   };
 
   return (
