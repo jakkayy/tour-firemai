@@ -1,6 +1,7 @@
 export const revalidate = 21600;
 
 import { unstable_cache } from "next/cache";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
 import type { Tour } from "@/types/database";
@@ -12,7 +13,7 @@ import Pagination from "@/components/Pagination";
 const PER_PAGE = 12;
 
 type Params = {
-  country?: string;
+  countries?: string;
   min?: string;
   max?: string;
   sort?: string;
@@ -31,7 +32,15 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
     .select("*, sources(name)", { count: "exact" })
     .eq("is_active", true);
 
-  if (params.country) query = query.ilike("title", `%${params.country}%`);
+  if (params.countries) {
+    const list = params.countries.split(",").filter(Boolean);
+    if (list.length === 1) {
+      query = query.ilike("title", `%${list[0]}%`);
+    } else if (list.length > 1) {
+      query = query.or(list.map((c) => `title.ilike.%${c}%`).join(","));
+    }
+  }
+
   if (params.min) query = query.gte("discounted_price", Number(params.min));
   if (params.max) query = query.lte("discounted_price", Number(params.max));
 
@@ -85,30 +94,41 @@ export default async function ToursPage({
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1));
 
-  const [{ tours, total }, countries] = await Promise.all([
+  const [{ tours, total }, availableCountries] = await Promise.all([
     getTours(params),
     getAvailableCountries(),
   ]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
-  const heading = params.country ? `ทัวร์${params.country}` : "ทัวร์ไฟไหม้ทั้งหมด";
+  const selectedList = params.countries ? params.countries.split(",").filter(Boolean) : [];
+  const heading =
+    selectedList.length === 1
+      ? `ทัวร์${selectedList[0]}`
+      : selectedList.length > 1
+        ? `ทัวร์ ${selectedList.join(" · ")}`
+        : "ทัวร์ไฟไหม้ทั้งหมด";
 
   return (
     <>
       <Navbar />
 
-      <div className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <p className="text-xs font-semibold text-teal-400 uppercase tracking-widest mb-2">Flash Deals</p>
-          <h1 className="text-3xl font-bold text-white">{heading}</h1>
-          <p className="text-slate-400 text-sm mt-1">พบ <span className="text-white font-semibold">{total}</span> รายการ</p>
-        </div>
-      </div>
-
       <div className="bg-zinc-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 py-10">
+          <div className="mb-7">
+            <nav className="flex items-center gap-2 text-xs text-zinc-400 mb-4">
+              <Link href="/" className="hover:text-zinc-600 transition-colors">หน้าแรก</Link>
+              <span>/</span>
+              <span className="text-teal-600 font-medium">ทัวร์ทั้งหมด</span>
+            </nav>
+            <p className="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-2">Flash Deals</p>
+            <h1 className="text-3xl font-bold text-zinc-900">{heading}</h1>
+            <p className="text-zinc-500 text-sm mt-1">
+              พบ <span className="text-zinc-800 font-semibold">{total}</span> รายการ
+            </p>
+          </div>
+
           <div className="flex gap-7">
-            <FilterSidebar countries={countries} currentParams={params} />
+            <FilterSidebar countries={availableCountries} currentParams={params} />
 
             <div className="flex-1 min-w-0">
               {tours.length === 0 ? (
@@ -136,7 +156,6 @@ export default async function ToursPage({
           </div>
         </div>
       </div>
-
     </>
   );
 }

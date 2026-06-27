@@ -1,4 +1,5 @@
 import type { Tour } from "@/types/database";
+import { extractCountry } from "@/lib/countries";
 
 type Props = {
   tour: Tour & { source_name?: string };
@@ -19,9 +20,18 @@ function formatDate(dateStr: string | null) {
   });
 }
 
+function PinIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
 export default function TourCard({ tour, priority = false }: Props) {
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const price = tour.discounted_price ?? tour.original_price;
+  const country = extractCountry(tour.title);
 
   return (
     <a
@@ -50,20 +60,24 @@ export default function TourCard({ tour, priority = false }: Props) {
           </div>
         )}
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-        {/* Discount badge */}
         {discountPct && (
           <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
             ลด {discountPct}%
           </span>
         )}
 
-        {/* Date */}
         {tour.departure_date && (
           <span className="absolute bottom-3 left-3 text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
             {formatDate(tour.departure_date)}
+          </span>
+        )}
+
+        {country && (
+          <span className="absolute bottom-3 right-3 text-white text-xs font-semibold bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+            <PinIcon />
+            {country}
           </span>
         )}
       </div>
@@ -84,7 +98,7 @@ export default function TourCard({ tour, priority = false }: Props) {
                 ฿{formatPrice(tour.original_price)}
               </p>
             )}
-            <p className="text-lg font-bold text-zinc-900 leading-none">
+            <p className="text-lg font-bold text-red-500 leading-none">
               {price ? `฿${formatPrice(price)}` : "ติดต่อสอบถาม"}
             </p>
             {tour.original_price && tour.discounted_price && (

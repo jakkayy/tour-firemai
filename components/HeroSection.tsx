@@ -5,65 +5,116 @@ import { useState } from "react";
 import { COUNTRY_LIST } from "@/lib/countries";
 import Dropdown from "./Dropdown";
 
+const BG_IMAGE =
+  "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=1920&q=80";
+
+const BUDGET_OPTIONS = [
+  { value: "", label: "ทุกราคา" },
+  { value: "10000", label: "ต่ำกว่า ฿10,000" },
+  { value: "10000-20000", label: "฿10,000 – ฿20,000" },
+  { value: "20000-50000", label: "฿20,000 – ฿50,000" },
+  { value: "50000+", label: "มากกว่า ฿50,000" },
+];
+
+const SORT_OPTIONS = [
+  { value: "discount", label: "ส่วนลดสูงสุด" },
+  { value: "price_asc", label: "ราคาต่ำสุด" },
+  { value: "date", label: "วันเดินทางใกล้สุด" },
+];
+
+function SearchIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
+
 export default function HeroSection({ selectedCountry }: { selectedCountry?: string }) {
   const router = useRouter();
   const [country, setCountry] = useState(selectedCountry ?? "");
+  const [budget, setBudget] = useState("");
+  const [sort, setSort] = useState("discount");
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const url = country ? `/tours?country=${encodeURIComponent(country)}` : "/tours";
-    router.push(url);
+    const p = new URLSearchParams();
+    if (country) p.set("countries", country);
+    if (budget === "10000") p.set("max", "10000");
+    else if (budget === "10000-20000") { p.set("min", "10000"); p.set("max", "20000"); }
+    else if (budget === "20000-50000") { p.set("min", "20000"); p.set("max", "50000"); }
+    else if (budget === "50000+") p.set("min", "50000");
+    if (sort && sort !== "discount") p.set("sort", sort);
+    const qs = p.toString();
+    router.push(`/tours${qs ? `?${qs}` : ""}`);
   }
 
   return (
-    <section className="relative min-h-[500px] bg-gradient-to-b from-slate-900 via-blue-950 to-teal-950 flex items-center justify-center">
-      {/* Decorative layer — overflow-hidden only here so dropdown can escape */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div className="absolute top-10 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-1/4 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl" />
-      </div>
+    <section
+      className="relative min-h-[560px] flex items-center justify-center"
+      style={{
+        backgroundImage: `url('${BG_IMAGE}')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: "#0f172a",
+      }}
+    >
+      <div className="absolute inset-0 bg-black/55" />
 
-      <div className="relative z-10 text-center text-white px-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 border border-white/20 rounded-full px-4 py-1.5 text-sm text-sky-200 mb-6">
+      <div className="relative z-10 text-center text-white px-4 w-full max-w-3xl mx-auto py-16">
+        <div className="inline-flex items-center gap-2 border border-white/25 rounded-full px-4 py-1.5 text-xs text-sky-200 mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
           อัปเดตทัวร์ทุก 6 ชั่วโมง
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-          ค้นพบ<span className="text-sky-300">ทัวร์ไฟไหม้</span>
-          <br />ราคาดีที่สุด
+        <h1 className="text-4xl md:text-5xl font-bold mb-3 leading-tight drop-shadow-lg">
+          ค้นหาทัวร์ไฟไหม้{" "}
+          <span className="text-teal-300">ดีลลับราคาพิเศษ</span>
         </h1>
-        <p className="text-lg text-slate-300 mb-10">
-          รวมทัวร์ลดราคาสูงสุดก่อนวันเดินทาง จากเว็บทัวร์ชั้นนำ
+        <p className="text-lg text-white/75 mb-8 drop-shadow">
+          รวมทัวร์ลดราคาจากทุกบริษัทชั้นนำ อัปเดตทุก 6 ชั่วโมง
         </p>
 
         <form
           onSubmit={handleSearch}
-          className="flex flex-col sm:flex-row gap-2 max-w-xl mx-auto"
+          className="bg-white rounded-2xl p-3 flex flex-col sm:flex-row gap-2 shadow-2xl"
         >
           <Dropdown
-            variant="dark"
+            variant="light"
             options={[
-              { value: "", label: "ทุกประเทศปลายทาง" },
-              ...COUNTRY_LIST.map((c) => ({ value: c, label: `ทัวร์${c}` })),
+              { value: "", label: "ทุกประเทศ" },
+              ...COUNTRY_LIST.map((c) => ({ value: c, label: c })),
             ]}
             value={country}
             onChange={setCountry}
-            placeholder="ทุกประเทศปลายทาง"
+            placeholder="ทุกประเทศ"
             className="flex-1"
           />
+
+          <Dropdown
+            variant="light"
+            options={BUDGET_OPTIONS}
+            value={budget}
+            onChange={setBudget}
+            placeholder="งบประมาณ"
+            className="flex-1"
+          />
+
+          <Dropdown
+            variant="light"
+            options={SORT_OPTIONS}
+            value={sort}
+            onChange={setSort}
+            className="flex-1"
+          />
+
           <button
             type="submit"
-            className="bg-teal-500 text-white px-8 py-2.5 rounded-xl font-semibold text-sm hover:bg-teal-400 transition-colors whitespace-nowrap"
+            className="bg-teal-500 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-teal-400 transition-colors whitespace-nowrap flex items-center justify-center gap-2 shrink-0"
           >
-            ค้นหาทัวร์
+            <SearchIcon />
+            ค้นหา
           </button>
         </form>
       </div>

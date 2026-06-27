@@ -8,7 +8,7 @@ type Props = {
 
 function buildUrl(page: number, params: Record<string, string | undefined>) {
   const p = new URLSearchParams();
-  if (params.country) p.set("country", params.country);
+  if (params.countries) p.set("countries", params.countries);
   if (params.min) p.set("min", params.min);
   if (params.max) p.set("max", params.max);
   if (params.sort) p.set("sort", params.sort);
