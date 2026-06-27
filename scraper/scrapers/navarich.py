@@ -23,7 +23,7 @@ def _parse_price(text: str) -> float | None:
 
 def _parse_departure(text: str) -> date | None:
     # "27 มิ.ย. 69 - 03 ก.ค. 69" — take first date
-    m = re.search(r"(\d+)\s+([ก-ฮ.]+)\s+(\d{2})", text)
+    m = re.search(r"(\d+)\s+(\S+)\s+(\d{2})", text)
     if not m:
         return None
     day, month_abbr, year_be_short = m.group(1), m.group(2), m.group(3)
