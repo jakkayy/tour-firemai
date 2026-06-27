@@ -11,7 +11,7 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-6 text-sm text-zinc-600">
           <Link href="/" className="hover:text-blue-700 transition-colors">หน้าแรก</Link>
-          <Link href="/#hot-deals" className="hover:text-blue-700 transition-colors">ทัวร์ยอดนิยม</Link>
+          <Link href="/tours" className="hover:text-blue-700 transition-colors">ทัวร์ทั้งหมด</Link>
         </div>
       </div>
     </nav>

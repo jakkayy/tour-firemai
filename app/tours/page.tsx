@@ -1,5 +1,6 @@
 export const revalidate = 21600;
 
+import { unstable_cache } from "next/cache";
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
 import type { Tour } from "@/types/database";
@@ -57,21 +58,25 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   };
 }
 
-async function getAvailableCountries(): Promise<string[]> {
-  const { data } = await supabase
-    .from("tours")
-    .select("title")
-    .eq("is_active", true)
-    .limit(500);
+const getAvailableCountries = unstable_cache(
+  async (): Promise<string[]> => {
+    const { data } = await supabase
+      .from("tours")
+      .select("title")
+      .eq("is_active", true)
+      .limit(500);
 
-  if (!data) return [];
-  const found = new Set<string>();
-  data.forEach(({ title }) => {
-    const c = extractCountry(title);
-    if (c) found.add(c);
-  });
-  return COUNTRY_LIST.filter((c) => found.has(c));
-}
+    if (!data) return [];
+    const found = new Set<string>();
+    data.forEach(({ title }) => {
+      const c = extractCountry(title);
+      if (c) found.add(c);
+    });
+    return COUNTRY_LIST.filter((c) => found.has(c));
+  },
+  ["available-countries"],
+  { revalidate: 21600 }
+);
 
 export default async function ToursPage({
   searchParams,
