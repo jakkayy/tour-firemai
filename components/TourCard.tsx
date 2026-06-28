@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Tour } from "@/types/database";
 import { extractCountry } from "@/lib/countries";
 import TourImage from "./TourImage";
@@ -14,10 +15,11 @@ function formatPrice(price: number | null) {
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
-  return new Date(dateStr).toLocaleDateString("th-TH", {
+  return new Date(dateStr).toLocaleDateString("th-TH-u-nu-latn", {
     day: "numeric",
     month: "short",
     year: "2-digit",
+    timeZone: "Asia/Bangkok",
   });
 }
 
@@ -35,10 +37,8 @@ export default function TourCard({ tour, priority = false }: Props) {
   const country = extractCountry(tour.title);
 
   return (
-    <a
-      href={tour.tour_url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      href={`/tours/${tour.id}`}
       className="group flex flex-col rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
     >
       {/* Image */}
@@ -110,6 +110,6 @@ export default function TourCard({ tour, priority = false }: Props) {
           </span>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

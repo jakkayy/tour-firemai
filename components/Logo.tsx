@@ -4,11 +4,8 @@ type Props = {
   textColor?: string;
 };
 
-let _uid = 0;
-
 function TravelIcon({ size }: { size: number }) {
-  const id = ++_uid;
-  const clipId = `tci-${id}`;
+  const clipId = "tci";
 
   return (
     <svg

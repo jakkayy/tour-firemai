@@ -55,6 +55,18 @@ export async function generateMetadata({
 
 type TourWithSource = Tour & { source_name: string };
 
+async function getLastUpdated(): Promise<string | null> {
+  const res = await supabase
+    .from("tours")
+    .select("updated_at")
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  const row = (res.data ?? [])[0] as { updated_at: string } | undefined;
+  return row?.updated_at ?? null;
+}
+
 async function getTours(params: Params): Promise<{ tours: TourWithSource[]; total: number }> {
   const page = Math.max(1, Number(params.page ?? 1));
   const from = (page - 1) * PER_PAGE;
@@ -141,9 +153,10 @@ export default async function ToursPage({
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1));
 
-  const [{ tours, total }, availableCountries] = await Promise.all([
+  const [{ tours, total }, availableCountries, lastUpdated] = await Promise.all([
     getTours(params),
     getAvailableCountries(),
+    getLastUpdated(),
   ]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
@@ -171,6 +184,20 @@ export default async function ToursPage({
             <h1 className="text-3xl font-bold text-zinc-900">{heading}</h1>
             <p className="text-zinc-500 text-sm mt-1">
               พบ <span className="text-zinc-800 font-semibold">{total}</span> รายการ
+              {lastUpdated && (
+                <span className="ml-3 text-xs text-zinc-400">
+                  อัปเดตล่าสุด{" "}
+                  {new Date(lastUpdated).toLocaleString("th-TH-u-nu-latn", {
+                    day: "numeric",
+                    month: "short",
+                    year: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "Asia/Bangkok",
+                  })}
+                  {" น."}
+                </span>
+              )}
             </p>
           </div>
 

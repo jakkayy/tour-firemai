@@ -90,7 +90,7 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
           ค้นหาทัวร์ไฟไหม้{" "}
           <span className="text-teal-300">ดีลลับราคาพิเศษ</span>
         </h1>
-        <p className="text-lg text-white/75 mb-8 drop-shadow">
+        <p className="text-lg text-white/75 mb-8">
           รวมทัวร์ลดราคาจากบริษัทชั้นนำ อัปเดตทุก 6 ชั่วโมง
         </p>
 
