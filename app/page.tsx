@@ -9,6 +9,18 @@ import Link from "next/link";
 
 type TourWithSource = Tour & { source_name: string };
 
+async function getLastUpdated(): Promise<string | null> {
+  const res = await supabase
+    .from("tours")
+    .select("updated_at")
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  const row = (res.data ?? [])[0] as { updated_at: string } | undefined;
+  return row?.updated_at ?? null;
+}
+
 async function getTourCount(): Promise<number> {
   const { count, error } = await supabase
     .from("tours")
@@ -63,7 +75,7 @@ function ListIcon() {
 }
 
 export default async function Home() {
-  const [tours, tourCount] = await Promise.all([getFeaturedTours(), getTourCount()]);
+  const [tours, tourCount, lastUpdated] = await Promise.all([getFeaturedTours(), getTourCount(), getLastUpdated()]);
 
   return (
     <>
@@ -88,7 +100,18 @@ export default async function Home() {
                 <ClockIcon />
               </div>
               <div>
-                <p className="font-bold text-zinc-900 text-sm">อัปเดตทุก 6 ชั่วโมง</p>
+                <p className="font-bold text-zinc-900 text-sm">
+                  {lastUpdated
+                    ? "อัปเดตล่าสุด " + new Date(lastUpdated).toLocaleString("th-TH-u-nu-latn", {
+                        day: "numeric",
+                        month: "short",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "Asia/Bangkok",
+                      }) + " น."
+                    : "อัปเดตทุก 6 ชั่วโมง"}
+                </p>
                 <p className="text-xs text-zinc-500">ไม่พลาดดีลไฟไหม้ล่าสุดเสมอ</p>
               </div>
             </div>

@@ -66,10 +66,11 @@ function formatPrice(price: number | null) {
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null;
-  return new Date(dateStr).toLocaleDateString("th-TH", {
+  return new Date(dateStr).toLocaleDateString("th-TH-u-nu-latn", {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Bangkok",
   });
 }
 

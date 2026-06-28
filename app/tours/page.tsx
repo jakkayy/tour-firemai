@@ -187,12 +187,13 @@ export default async function ToursPage({
               {lastUpdated && (
                 <span className="ml-3 text-xs text-zinc-400">
                   อัปเดตล่าสุด{" "}
-                  {new Date(lastUpdated).toLocaleString("th-TH", {
+                  {new Date(lastUpdated).toLocaleString("th-TH-u-nu-latn", {
                     day: "numeric",
                     month: "short",
                     year: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "Asia/Bangkok",
                   })}
                   {" น."}
                 </span>
