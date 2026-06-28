@@ -180,7 +180,7 @@ export default async function TourDetailPage({
                 rel="noopener noreferrer"
                 className="block w-full text-center bg-slate-800 text-white py-4 rounded-2xl font-semibold text-base hover:bg-slate-700 transition-colors mb-4"
               >
-                ดูรายละเอียดและจอง ↗
+                ดูรายละเอียดและจอง
               </a>
 
               <ShareButtons url={pageUrl} title={tour.title} />
