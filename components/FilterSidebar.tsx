@@ -194,6 +194,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     if (max) p.set("max", max);
     if (sort && sort !== "discount") p.set("sort", sort);
     if (month) p.set("month", month);
+    if (currentParams.q) p.set("q", currentParams.q);
     const qs = p.toString();
     return `/tours${qs ? `?${qs}` : ""}`;
   }
