@@ -18,6 +18,27 @@ def get_client() -> Client:
     return _client
 
 
+def get_existing_urls(source_id: int) -> set[str]:
+    """All tour_urls already stored for a source (active or not)."""
+    client = get_client()
+    urls: set[str] = set()
+    page_size = 1000
+    start = 0
+    while True:
+        rows = (
+            client.table("tours")
+            .select("tour_url")
+            .eq("source_id", source_id)
+            .range(start, start + page_size - 1)
+            .execute()
+            .data
+        )
+        urls.update(r["tour_url"] for r in rows)
+        if len(rows) < page_size:
+            return urls
+        start += page_size
+
+
 def upsert_tours(tours: list[TourItem]) -> int:
     if not tours:
         return 0

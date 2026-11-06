@@ -1,6 +1,8 @@
 import asyncio
 import sys
-from db import upsert_tours, deactivate_missing, delete_stale_tours
+from base_scraper import TourItem, drop_departed
+from db import get_existing_urls, upsert_tours, deactivate_missing, delete_stale_tours
+from notify import notify_new_tours
 from scrapers.travelzeed import TravelzeedScraper
 from scrapers.thaifly import ThaiFlyScraper
 from scrapers.mushroom import MushroomScraper
@@ -20,16 +22,24 @@ SCRAPERS = [
 ]
 
 
-async def run_scraper(scraper, retries: int = 2) -> bool:
+async def run_scraper(scraper, new_found: list[TourItem], retries: int = 2) -> bool:
     name = type(scraper).__name__
     print(f"[{name}] scraping...")
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         try:
-            tours = await scraper.scrape()
+            scraped = await scraper.scrape()
+            tours = drop_departed(scraped)
+            skipped = len(scraped) - len(tours)
+            if skipped:
+                print(f"[{name}] skipped {skipped} tours already departed")
+            existing = get_existing_urls(scraper.source_id)
+            # An empty source is its first run: everything would be "new", which is just noise.
+            fresh = [t for t in tours if t.tour_url not in existing] if existing else []
             count = upsert_tours(tours)
             deactivate_missing(scraper.source_id, [t.tour_url for t in tours])
-            print(f"[{name}] upserted {count} tours")
+            new_found.extend(fresh)
+            print(f"[{name}] upserted {count} tours ({len(fresh)} new)")
             return True
         except Exception as e:
             last_error = e
@@ -42,9 +52,11 @@ async def run_scraper(scraper, retries: int = 2) -> bool:
 
 
 async def main():
-    results = await asyncio.gather(*[run_scraper(s) for s in SCRAPERS])
+    new_found: list[TourItem] = []
+    results = await asyncio.gather(*[run_scraper(s, new_found) for s in SCRAPERS])
     deleted = delete_stale_tours(days=3)
     print(f"[cleanup] deleted {deleted} stale tours")
+    notify_new_tours(new_found)
     if not all(results):
         sys.exit(1)
 

@@ -43,7 +43,10 @@ class MushroomScraper(BaseScraper):
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
             page = await browser.new_page()
-            await page.goto(PROMO_URL, wait_until="networkidle", timeout=60000)
+            # networkidle never settles on this site from CI runners (analytics/ads keep
+            # firing), so wait for the DOM and then for the cards themselves.
+            await page.goto(PROMO_URL, wait_until="domcontentloaded", timeout=60000)
+            await page.wait_for_selector(".hot-promotion-item", timeout=45000)
 
             scroll_height = await page.evaluate("document.body.scrollHeight")
             step = 600

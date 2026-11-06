@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 
 @dataclass
@@ -30,3 +31,12 @@ class BaseScraper(ABC):
         if original <= 0:
             return 0.0
         return round((1 - discounted / original) * 100, 2)
+
+
+def drop_departed(tours: list[TourItem], today: Optional[date] = None) -> list[TourItem]:
+    """Remove tours whose departure date has already passed.
+
+    Tours without a departure date are kept: some sources don't publish one.
+    """
+    today = today or datetime.now(ZoneInfo("Asia/Bangkok")).date()
+    return [t for t in tours if t.departure_date is None or t.departure_date >= today]
