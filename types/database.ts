@@ -8,7 +8,7 @@ export type Database = {
       };
       tours: {
         Row: Tour;
-        Insert: Omit<Tour, "id" | "created_at" | "updated_at">;
+        Insert: Omit<Tour, "id" | "created_at" | "updated_at" | "notified_at">;
         Update: Partial<Omit<Tour, "id" | "created_at">>;
       };
       price_history: {
@@ -40,6 +40,7 @@ export type Tour = {
   image_url: string | null;
   tour_url: string;
   is_active: boolean;
+  notified_at: string | null;
   created_at: string;
   updated_at: string;
 };

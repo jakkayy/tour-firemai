@@ -21,31 +21,26 @@ class FakeScraper:
         return self._tours
 
 
-def _run(monkeypatch, scraped, existing):
-    monkeypatch.setattr(main, "get_existing_urls", lambda source_id: existing)
-    upserted = []
+def _run(monkeypatch, scraped):
+    upserted, deactivated = [], []
     monkeypatch.setattr(main, "upsert_tours", lambda tours: upserted.extend(tours) or len(tours))
-    monkeypatch.setattr(main, "deactivate_missing", lambda *a: None)
-    new_found: list[TourItem] = []
-    ok = asyncio.run(main.run_scraper(FakeScraper(scraped), new_found, retries=0))
-    return ok, new_found, upserted
+    monkeypatch.setattr(main, "deactivate_missing", lambda sid, urls: deactivated.extend(urls))
+    ok = asyncio.run(main.run_scraper(FakeScraper(scraped), retries=0))
+    return ok, upserted, deactivated
 
 
-def test_only_unseen_urls_are_new(monkeypatch):
-    ok, new_found, upserted = _run(monkeypatch, [_tour("a"), _tour("b")], existing={"a"})
-    assert ok
-    assert [t.tour_url for t in new_found] == ["b"]
-    assert len(upserted) == 2  # known tours are still upserted to refresh price
-
-
-def test_first_run_for_a_source_reports_nothing_new(monkeypatch):
-    ok, new_found, upserted = _run(monkeypatch, [_tour("a"), _tour("b")], existing=set())
-    assert ok and new_found == [] and len(upserted) == 2
-
-
-def test_departed_tours_are_neither_stored_nor_new(monkeypatch):
+def test_departed_tours_are_neither_stored_nor_kept_active(monkeypatch):
     past = _tour("old", dep=date(2020, 1, 1))
-    ok, new_found, upserted = _run(monkeypatch, [past, _tour("a")], existing={"x"})
+    ok, upserted, deactivated = _run(monkeypatch, [past, _tour("a"), _tour("b", dep=None)])
     assert ok
-    assert [t.tour_url for t in upserted] == ["a"]
-    assert [t.tour_url for t in new_found] == ["a"]
+    assert [t.tour_url for t in upserted] == ["a", "b"]
+    # deactivate_missing only learns about the survivors, so "old" gets switched off
+    assert deactivated == ["a", "b"]
+
+
+def test_a_failing_source_reports_failure(monkeypatch):
+    def boom(tours):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(main, "upsert_tours", boom)
+    assert asyncio.run(main.run_scraper(FakeScraper([_tour("a")]), retries=0)) is False
