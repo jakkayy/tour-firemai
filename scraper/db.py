@@ -101,13 +101,19 @@ def last_notified_at() -> datetime | None:
     return datetime.fromisoformat(rows[0]["notified_at"]) if rows else None
 
 
-def fetch_unnotified() -> list[tuple[int, TourItem]]:
-    """Active, not-yet-departed tours that haven't been announced. Returns (id, tour)."""
+def fetch_unnotified(min_discount: float = 0) -> list[tuple[int, TourItem]]:
+    """Active, not-yet-departed tours that haven't been announced and discount by at
+    least `min_discount` percent. Returns (id, tour).
+
+    Tours below the bar stay unannounced on purpose: they are never sent, and if a price
+    drop later lifts one over the bar it is announced then.
+    """
     rows = (
         get_client()
         .table("tours")
         .select("*")
         .eq("is_active", True)
+        .gte("discount_percent", min_discount)
         .is_("notified_at", "null")
         .or_(f"departure_date.is.null,departure_date.gte.{today_bangkok().isoformat()}")
         .limit(1000)

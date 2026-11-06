@@ -134,6 +134,8 @@ export default async function Home() {
 
       <section className="bg-zinc-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
+          <LineAddFriend className="mb-12" />
+
           <div className="mb-8">
             <p className="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-2">Flash Sale Deals</p>
             <h2 className="text-3xl font-bold text-zinc-900">ดีลทัวร์ไฟไหม้ แนะนำวันนี้</h2>
@@ -164,8 +166,6 @@ export default async function Home() {
               </div>
             </>
           )}
-
-          <LineAddFriend className="mt-14" />
         </div>
       </section>
     </>
