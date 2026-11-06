@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
 import ShareButtons from "@/components/ShareButtons";
 import FavoriteButton from "@/components/FavoriteButton";
+import LineAddFriend from "@/components/LineAddFriend";
 import PriceHistory from "@/components/PriceHistory";
 
 const BASE_URL = "https://tour-firemai.vercel.app";
@@ -211,6 +212,8 @@ export default async function TourDetailPage({
               >
                 ดูรายละเอียดและจอง
               </a>
+
+              <LineAddFriend variant="note" className="mb-4" />
 
               <div className="mb-4">
                 <FavoriteButton tourId={tour.id} variant="full" />

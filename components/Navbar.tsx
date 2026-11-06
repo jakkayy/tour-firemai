@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFavorites } from "@/lib/favorites";
 import Logo from "./Logo";
+import LineAddFriend from "./LineAddFriend";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -21,12 +22,13 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center shrink-0">
           <Logo size={36} variant="full" />
         </Link>
 
         <div className="flex items-center gap-1 text-sm">
-          <Link href="/" className={navClass("/")}>หน้าแรก</Link>
+          {/* The logo already links home, so phones drop this to leave room for the LINE button */}
+          <Link href="/" className={`${navClass("/")} hidden sm:block`}>หน้าแรก</Link>
           <Link href="/tours" className={navClass("/tours")}>ทัวร์ทั้งหมด</Link>
           <Link href="/favorites" className={navClass("/favorites")} aria-label="รายการโปรด">
             <svg className="sm:hidden inline" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -39,6 +41,7 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+          <LineAddFriend variant="nav" className="ml-1 sm:ml-2" />
         </div>
       </div>
     </nav>
