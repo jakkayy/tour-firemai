@@ -11,6 +11,11 @@ export type Database = {
         Insert: Omit<Tour, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<Tour, "id" | "created_at">>;
       };
+      price_history: {
+        Row: PriceHistory;
+        Insert: Omit<PriceHistory, "id" | "recorded_at">;
+        Update: Partial<Omit<PriceHistory, "id">>;
+      };
     };
   };
 };
@@ -37,4 +42,12 @@ export type Tour = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type PriceHistory = {
+  id: number;
+  tour_id: number;
+  discounted_price: number | null;
+  original_price: number | null;
+  recorded_at: string;
 };

@@ -1,6 +1,7 @@
 export const revalidate = 21600;
 
 import { supabase } from "@/lib/supabase";
+import { notDepartedFilter } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
@@ -25,7 +26,8 @@ async function getTourCount(): Promise<number> {
   const { count, error } = await supabase
     .from("tours")
     .select("*", { count: "exact", head: true })
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .or(notDepartedFilter());
   if (error) console.error("getTourCount error:", error);
   return count ?? 0;
 }
@@ -35,6 +37,7 @@ async function getFeaturedTours(): Promise<TourWithSource[]> {
     .from("tours")
     .select("*, sources(name)")
     .eq("is_active", true)
+    .or(notDepartedFilter())
     .not("discount_percent", "is", null)
     .not("image_url", "is", null)
     .order("discount_percent", { ascending: false })
