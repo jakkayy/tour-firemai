@@ -42,7 +42,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Email notification via GitHub Actions when a scraper fails
 - Deletes tours inactive for more than 3 days after each run
 - Skips tours already departed, so they are deactivated and cleaned up with the rest
-- Sends a LINE Flex Message carousel of newly found tours to the account's followers, at most about once a day (optional, see [LINE alerts](#line-alerts))
+- Sends followers of the LINE account a morning Flex Message carousel of new deals discounting 30%+, at most once a day (optional, see [LINE alerts](#line-alerts))
 
 **Security**
 - Row Level Security (RLS) on Supabase
@@ -184,21 +184,53 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (not the anon key) |
 | `LINE_CHANNEL_ACCESS_TOKEN` | Optional. LINE Messaging API channel access token |
 | `LINE_BROADCAST` / `LINE_TO` | Optional. Broadcast to all followers, or push to one user ID |
-| `LINE_MIN_INTERVAL_HOURS` | Optional. Minimum hours between alerts (default 20) |
 
-See [LINE alerts](#line-alerts).
+Optional tuning variables for the alert rules go in GitHub **variables**, not secrets. See [LINE alerts](#line-alerts).
 
 ### LINE alerts
 
-After each scrape, the scraper pushes one LINE message with the newly found tours (best discounts first, up to 10). It is optional: with no token set it is skipped, and a failed push never fails the scrape. The first run for an empty source reports nothing, to avoid a flood of every tour as "new".
+Visitors add the site's LINE Official Account as a friend with a button on the site (navbar, home page, tour pages, footer). Each morning the scraper can send everyone who follows the account one **Flex Message carousel** of the best new deals: a card per tour (image, discount badge, price, savings, departure date, "ดูทัวร์" button), biggest discounts first, plus a closing card linking to the site.
+
+It is optional: with no token set it is skipped, and a failed send never fails the scrape.
+
+**When it sends.** Only if all of these hold, otherwise the tours are held for a later run:
+
+| Rule | Default | Variable |
+|---|---|---|
+| It is the morning run (Bangkok hours, inclusive; `any` = no restriction, handy for a manual test) | `7-9` | `LINE_SEND_HOURS` |
+| The last alert was at least this many hours ago | `20` | `LINE_MIN_INTERVAL_HOURS` |
+| New tours discounting by at least this many percent | `30` | `LINE_MIN_DISCOUNT` |
+| At least this many such tours | `2` | `LINE_MIN_DEALS` |
+
+That works out to at most one message a day, and none on days without enough good deals. Five cards are shown; the closing card says how many more there were. Alerts do not cover price drops on existing tours, and every recipient gets the same message.
+
+**Why so conservative.** Broadcasts are billed per follower, and a blocked account is lost for good, so each message has to be worth opening. About 9% of tours clear the 30% bar. Watch the block count in LINE Official Account Manager and loosen or tighten the variables accordingly.
+
+Which tours were already announced is stored in `tours.notified_at` (migration 007), so a tour is never announced twice and a failed send is retried on the next run. Tours below the discount bar are never marked, so one that later drops past the bar is announced then. Migration 007 marks existing tours as announced, so switching alerts on does not announce the whole catalogue.
 
 LINE Notify was shut down in 2025, so this uses the Messaging API:
 
-1. Create a Messaging API channel in the [LINE Developers console](https://developers.line.biz/console/) and issue a **channel access token (long-lived)**.
-2. Get the target ID: your own **user ID** (Basic settings tab), or a **group ID** if you add the bot to a group (needs a webhook to read it).
-3. Add the token and ID as the secrets above. To try it locally, put `LINE_CHANNEL_ACCESS_TOKEN` and `LINE_TO` in `scraper/.env`.
+1. In LINE Official Account Manager open **Settings → Messaging API** and enable it for your account.
+2. In the [LINE Developers console](https://developers.line.biz/console/) open that channel, **Messaging API** tab, and issue a **channel access token (long-lived)**.
+3. Add the GitHub secrets below, and set `NEXT_PUBLIC_LINE_ADD_FRIEND_URL` (a plain **Config** variable, not secret) in Vercel to the account's add-friend link (e.g. `https://lin.ee/xxxx`, from Official Account Manager). Redeploy. The add-friend buttons stay hidden while it is unset.
 
-A push to a user requires that user to have added the bot as a friend first.
+| Variable | Where | Purpose |
+|---|---|---|
+| `LINE_CHANNEL_ACCESS_TOKEN` | GitHub secret | Required to send |
+| `LINE_BROADCAST` | GitHub secret | `true` to send to every follower |
+| `LINE_TO` | GitHub secret | Alternative to broadcast: one user ID (Basic settings tab of the channel), for testing on yourself. `LINE_BROADCAST` wins if both are set |
+| `LINE_SEND_HOURS`, `LINE_MIN_INTERVAL_HOURS`, `LINE_MIN_DISCOUNT`, `LINE_MIN_DEALS` | GitHub **variables** (Settings → Secrets and variables → Actions → Variables) | Optional tuning, see the table above |
+| `NEXT_PUBLIC_LINE_ADD_FRIEND_URL` | Vercel (Config) | Add-friend link shown on the site |
+
+**Preview the card without sending anything:**
+
+```bash
+cd scraper
+python preview_flex.py             # prints sample JSON to paste into the Flex Message Simulator
+python preview_flex.py --validate  # has LINE check the format (needs LINE_CHANNEL_ACCESS_TOKEN)
+```
+
+Simulator: https://developers.line.biz/flex-simulator/
 
 ---
 
@@ -233,17 +265,3 @@ The `sources` table is seeded with 9 rows, but only 6 have a scraper:
 | 7 | Thai Fly | `thaifly.py` |
 | 8 | Quality Express | `qualityexpress.py` |
 | 9 | Navarich Travel | `navarich.py` |
-
-### Supabase API keys
-
-Both key styles work. For the new style, use the publishable key (`sb_publishable_...`) in `NEXT_PUBLIC_SUPABASE_ANON_KEY` and the secret key (`sb_secret_...`) in `SUPABASE_SERVICE_ROLE_KEY`. The scraper needs `supabase>=2.34` for `sb_secret_` keys; older versions reject them with `Invalid API key`. Never put the secret key in a `NEXT_PUBLIC_*` variable or in Vercel: it bypasses RLS.
-
----
-
-## Deployment
-
-1. Push to GitHub
-2. Import the repo in [Vercel](https://vercel.com) → Framework: Next.js
-3. Add environment variables in Vercel project settings
-4. Add secrets in GitHub repository settings
-5. Trigger the first scraper run manually: GitHub Actions → Scrape Tours → Run workflow

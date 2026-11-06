@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -10,11 +11,16 @@ from base_scraper import TourItem
 LINE_API = "https://api.line.me/v2/bot/message"
 SITE_URL = "https://tour-firemai.vercel.app"
 
-# A carousel holds at most 12 bubbles: up to 11 tours plus the closing "see all" card.
-MAX_TOURS = 11
-# Hours that must pass after one alert before the next. Broadcasts are billed per
-# follower, so this keeps the monthly quota from draining at one alert per scrape.
-DEFAULT_MIN_INTERVAL_HOURS = 20
+# Cards shown per alert (plus the closing "see all" card). Few enough to read without
+# swiping through a wall of them; LINE itself allows 12 bubbles per carousel.
+MAX_TOURS = 5
+
+# Defaults for the "worth interrupting someone for" rules. All can be overridden by
+# environment variables (see run_notifications).
+DEFAULT_MIN_INTERVAL_HOURS = 20  # broadcasts are billed per follower, so go easy
+DEFAULT_MIN_DISCOUNT = 30  # percent; ~9% of tours clear this bar
+DEFAULT_MIN_DEALS = 2  # don't message people about a single deal
+DEFAULT_SEND_HOURS = "7-9"  # Bangkok hours (inclusive): the morning run, allowing for cron delay
 
 # Same palette as the website (teal-500, red-500, slate-800, zinc).
 BRAND = "#14b8a6"
@@ -132,7 +138,7 @@ def _tour_bubble(t: TourItem) -> dict:
 
 
 def _see_all_bubble(remaining: int) -> dict:
-    headline = f"และอีก {remaining} รายการ" if remaining > 0 else "ดูดีลทั้งหมด"
+    headline = f"และอีก {remaining} ดีล" if remaining > 0 else "ดูดีลทั้งหมด"
     return {
         "type": "bubble",
         "size": "kilo",
@@ -178,9 +184,8 @@ def build_flex_message(tours: list[TourItem], total: Optional[int] = None) -> di
     total = max(total or len(tours), len(ranked))
     best = max((t.discount_percent or 0 for t in ranked), default=0)
 
-    alt = f"🔥 ทัวร์ไฟไหม้ใหม่ {total} รายการ"
-    if best:
-        alt += f" ลดสูงสุด {round(best)}%"
+    # This is the line people see on the lock screen, so lead with the best number.
+    alt = f"🔥 ลดสูงสุด {round(best)}% · {total} ดีลใหม่วันนี้" if best else f"🔥 {total} ดีลใหม่วันนี้"
 
     return {
         "type": "flex",
@@ -228,18 +233,40 @@ def send_message(message: dict) -> bool:
     return True
 
 
-def _min_interval_hours() -> float:
+def _env_number(name: str, default: float) -> float:
+    # GitHub passes unset secrets as empty strings, so empty means "use the default".
     try:
-        return float(os.environ.get("LINE_MIN_INTERVAL_HOURS", DEFAULT_MIN_INTERVAL_HOURS))
+        return float(os.environ.get(name, "").strip() or default)
     except ValueError:
-        return DEFAULT_MIN_INTERVAL_HOURS
+        return default
+
+
+def _in_send_window(now: datetime) -> bool:
+    """True if `now` falls in LINE_SEND_HOURS, a Bangkok hour range like "7-9" (inclusive).
+    "any" turns the restriction off, e.g. for testing with a manual run."""
+    spec = os.environ.get("LINE_SEND_HOURS", "").strip().lower() or DEFAULT_SEND_HOURS
+    if spec == "any":
+        return True
+    try:
+        start, _, end = spec.partition("-")
+        lo, hi = int(start), int(end or start)
+    except ValueError:
+        lo, hi = (int(x) for x in DEFAULT_SEND_HOURS.split("-"))
+    return lo <= now.astimezone(ZoneInfo("Asia/Bangkok")).hour <= hi
 
 
 def run_notifications(now: Optional[datetime] = None) -> bool:
-    """Announce tours that haven't been announced yet, at most once per interval.
+    """Send the morning deals alert if there is something worth sending.
 
-    State lives in tours.notified_at, so a failed send is simply retried next run
-    and tours are never announced twice. Returns True only if a message was sent.
+    Rules, in order (any failing one just holds the tours for a later run):
+      1. LINE is configured
+      2. it is the send window (LINE_SEND_HOURS, default Bangkok 7-9)
+      3. the last alert was at least LINE_MIN_INTERVAL_HOURS ago (default 20)
+      4. there are at least LINE_MIN_DEALS (default 2) not-yet-announced tours
+         discounting by at least LINE_MIN_DISCOUNT percent (default 30)
+
+    State lives in tours.notified_at, so a failed send is retried next run and a tour
+    is never announced twice. Returns True only if a message was sent.
     """
     # Imported here so the message builders stay importable without Supabase credentials.
     import db
@@ -250,23 +277,30 @@ def run_notifications(now: Optional[datetime] = None) -> bool:
         return False
     try:
         now = now or datetime.now(timezone.utc)
-        last = db.last_notified_at()
-        if last and (now - last).total_seconds() < _min_interval_hours() * 3600:
-            print(f"[notify] last alert {last:%Y-%m-%d %H:%M} UTC is within the interval, holding new tours")
+        if not _in_send_window(now):
+            print("[notify] outside the send window, holding new tours for the morning run")
             return False
 
-        pending = db.fetch_unnotified()
-        if not pending:
-            print("[notify] no new tours to announce")
+        interval = _env_number("LINE_MIN_INTERVAL_HOURS", DEFAULT_MIN_INTERVAL_HOURS)
+        last = db.last_notified_at()
+        if last and (now - last).total_seconds() < interval * 3600:
+            print(f"[notify] last alert {last:%Y-%m-%d %H:%M} UTC is within {interval:g}h, holding new tours")
+            return False
+
+        min_discount = _env_number("LINE_MIN_DISCOUNT", DEFAULT_MIN_DISCOUNT)
+        min_deals = int(_env_number("LINE_MIN_DEALS", DEFAULT_MIN_DEALS))
+        pending = db.fetch_unnotified(min_discount)
+        if len(pending) < min_deals:
+            print(f"[notify] {len(pending)} new deal(s) at {min_discount:g}%+, need {min_deals}; holding")
             return False
 
         message = build_flex_message([t for _, t in pending], total=len(pending))
         if not send_message(message):
             return False
-        # Mark everything pending, not only the shown cards: the closing card already
+        # Mark everything qualifying, not only the shown cards: the closing card already
         # told readers about the rest, and re-sending them next time would be noise.
         db.mark_notified([i for i, _ in pending])
-        print(f"[notify] announced {len(pending)} new tours on LINE")
+        print(f"[notify] announced {len(pending)} new deals on LINE")
         return True
     except Exception as e:
         print(f"[notify] skipped: {e}", file=sys.stderr)

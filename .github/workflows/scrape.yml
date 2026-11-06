@@ -34,5 +34,9 @@ jobs:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_BROADCAST: ${{ secrets.LINE_BROADCAST }}
           LINE_TO: ${{ secrets.LINE_TO }}
-          LINE_MIN_INTERVAL_HOURS: ${{ secrets.LINE_MIN_INTERVAL_HOURS }}
+          # Tuning knobs (not secret). Unset means the defaults in scraper/notify.py.
+          LINE_MIN_DISCOUNT: ${{ vars.LINE_MIN_DISCOUNT }}
+          LINE_MIN_DEALS: ${{ vars.LINE_MIN_DEALS }}
+          LINE_SEND_HOURS: ${{ vars.LINE_SEND_HOURS }}
+          LINE_MIN_INTERVAL_HOURS: ${{ vars.LINE_MIN_INTERVAL_HOURS }}
         run: python main.py
