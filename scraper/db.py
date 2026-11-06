@@ -1,8 +1,8 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from base_scraper import TourItem
+from base_scraper import TourItem, today_bangkok
 
 load_dotenv()
 
@@ -84,3 +84,58 @@ def delete_stale_tours(days: int = 3) -> int:
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     result = client.table("tours").delete().eq("is_active", False).lt("updated_at", cutoff).execute()
     return len(result.data) if result.data else 0
+
+
+def last_notified_at() -> datetime | None:
+    """When the most recent LINE alert went out (None if never)."""
+    rows = (
+        get_client()
+        .table("tours")
+        .select("notified_at")
+        .not_.is_("notified_at", "null")
+        .order("notified_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    return datetime.fromisoformat(rows[0]["notified_at"]) if rows else None
+
+
+def fetch_unnotified() -> list[tuple[int, TourItem]]:
+    """Active, not-yet-departed tours that haven't been announced. Returns (id, tour)."""
+    rows = (
+        get_client()
+        .table("tours")
+        .select("*")
+        .eq("is_active", True)
+        .is_("notified_at", "null")
+        .or_(f"departure_date.is.null,departure_date.gte.{today_bangkok().isoformat()}")
+        .limit(1000)
+        .execute()
+        .data
+    )
+    return [
+        (
+            r["id"],
+            TourItem(
+                title=r["title"],
+                tour_url=r["tour_url"],
+                source_id=r["source_id"],
+                destination=r.get("destination"),
+                original_price=r.get("original_price"),
+                discounted_price=r.get("discounted_price"),
+                discount_percent=r.get("discount_percent"),
+                departure_date=date.fromisoformat(r["departure_date"]) if r.get("departure_date") else None,
+                seats_left=r.get("seats_left"),
+                image_url=r.get("image_url"),
+            ),
+        )
+        for r in rows
+    ]
+
+
+def mark_notified(ids: list[int]) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    client = get_client()
+    for i in range(0, len(ids), 200):
+        client.table("tours").update({"notified_at": now}).in_("id", ids[i : i + 200]).execute()

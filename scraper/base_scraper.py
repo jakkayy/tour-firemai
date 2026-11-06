@@ -33,10 +33,14 @@ class BaseScraper(ABC):
         return round((1 - discounted / original) * 100, 2)
 
 
+def today_bangkok() -> date:
+    return datetime.now(ZoneInfo("Asia/Bangkok")).date()
+
+
 def drop_departed(tours: list[TourItem], today: Optional[date] = None) -> list[TourItem]:
     """Remove tours whose departure date has already passed.
 
     Tours without a departure date are kept: some sources don't publish one.
     """
-    today = today or datetime.now(ZoneInfo("Asia/Bangkok")).date()
+    today = today or today_bangkok()
     return [t for t in tours if t.departure_date is None or t.departure_date >= today]

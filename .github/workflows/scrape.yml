@@ -32,5 +32,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           # Optional: LINE alert for newly found tours. Skipped when unset.
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_BROADCAST: ${{ secrets.LINE_BROADCAST }}
           LINE_TO: ${{ secrets.LINE_TO }}
+          LINE_MIN_INTERVAL_HOURS: ${{ secrets.LINE_MIN_INTERVAL_HOURS }}
         run: python main.py

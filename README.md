@@ -27,6 +27,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Aggregates tours from 6 travel websites automatically (see [Sources](#sources))
 - Hides tours whose departure date has already passed
 - Price history chart on each tour, with a "lowest price seen" badge
+- "Add LINE friend" button to receive those alerts
 - Favorites: save tours with the heart icon (stored in the browser, no login) and review them at `/favorites`
 - Filter by destination (multi-select), departure month, price range, and sort order
 - Displays discount percentage, original price, and departure date
@@ -41,7 +42,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Email notification via GitHub Actions when a scraper fails
 - Deletes tours inactive for more than 3 days after each run
 - Skips tours already departed, so they are deactivated and cleaned up with the rest
-- Sends a LINE message listing newly found tours after each run (optional, see [LINE alerts](#line-alerts))
+- Sends a LINE Flex Message carousel of newly found tours to the account's followers, at most about once a day (optional, see [LINE alerts](#line-alerts))
 
 **Security**
 - Row Level Security (RLS) on Supabase
@@ -76,6 +77,8 @@ tour-firemai/
 │   ├── FavoriteButton.tsx    # Heart toggle (client, localStorage)
 │   ├── FavoritesList.tsx     # Saved tours for /favorites
 │   ├── PriceHistory.tsx      # Step chart of price changes
+│   ├── LineAddFriend.tsx     # Add-friend banner / button (hidden until configured)
+│   ├── LineIcon.tsx
 │   ├── Dropdown.tsx
 │   ├── Pagination.tsx
 │   ├── SiteFooter.tsx
@@ -90,6 +93,8 @@ tour-firemai/
 ├── scraper/
 │   ├── main.py               # Entry point + retry logic + cleanup
 │   ├── base_scraper.py       # Abstract base class
+│   ├── notify.py             # LINE Flex Message alerts
+│   ├── preview_flex.py       # Preview / validate the alert card
 │   ├── db.py                 # Supabase upsert + stale tour deletion
 │   ├── requirements.txt
 │   ├── scrapers/
@@ -102,14 +107,18 @@ tour-firemai/
 │   └── tests/
 │       ├── conftest.py
 │       ├── test_parsers.py   # parser tests for all scrapers
-│       └── test_filters.py   # departed-tour filter tests
+│       ├── test_filters.py   # departed-tour filter tests
+│       ├── test_notify.py    # Flex message + alert rules
+│       ├── test_db.py
+│       └── test_main.py
 ├── supabase/migrations/
 │   ├── 001_initial_schema.sql
 │   ├── 002_add_tour_url_unique.sql
 │   ├── 003_add_quality_express_source.sql
 │   ├── 004_add_navarich_source.sql
 │   ├── 005_enable_rls.sql
-│   └── 006_price_history.sql
+│   ├── 006_price_history.sql
+│   └── 007_notified_at.sql
 └── .github/workflows/
     ├── ci.yml                # pytest on every push/PR
     └── scrape.yml            # cron: 0 */6 * * *
@@ -174,7 +183,10 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (not the anon key) |
 | `LINE_CHANNEL_ACCESS_TOKEN` | Optional. LINE Messaging API channel access token |
-| `LINE_TO` | Optional. LINE user ID or group ID to send alerts to |
+| `LINE_BROADCAST` / `LINE_TO` | Optional. Broadcast to all followers, or push to one user ID |
+| `LINE_MIN_INTERVAL_HOURS` | Optional. Minimum hours between alerts (default 20) |
+
+See [LINE alerts](#line-alerts).
 
 ### LINE alerts
 
@@ -201,6 +213,7 @@ supabase/migrations/003_add_quality_express_source.sql
 supabase/migrations/004_add_navarich_source.sql
 supabase/migrations/005_enable_rls.sql
 supabase/migrations/006_price_history.sql
+supabase/migrations/007_notified_at.sql
 ```
 
 Run them in this order on an empty database: the scrapers use hardcoded `source_id` values that depend on insert order.

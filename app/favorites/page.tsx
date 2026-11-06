@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import FavoritesList from "@/components/FavoritesList";
+import LineAddFriend from "@/components/LineAddFriend";
 
 export const metadata: Metadata = {
   title: "รายการโปรด | ทัวร์ไฟไหม้",
@@ -25,6 +26,7 @@ export default function FavoritesPage() {
             <p className="text-zinc-500 text-sm mt-1">บันทึกไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</p>
           </div>
           <FavoritesList />
+          <LineAddFriend className="mt-12" />
         </div>
       </div>
     </>

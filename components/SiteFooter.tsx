@@ -1,3 +1,5 @@
+import LineAddFriend from "./LineAddFriend";
+
 const SOURCES = [
   { name: "TravelZeed Fire", url: "https://www.travelzeed.com/fire" },
   { name: "Uni Thai Travel", url: "https://www.unithaitravel.com/th/trip-tourfiremai.php" },
@@ -23,6 +25,7 @@ export default function SiteFooter() {
             <p className="text-xs mt-3 text-zinc-500">
               ราคาและโปรโมชันอาจเปลี่ยนแปลงได้ กรุณายืนยันกับเว็บต้นทางก่อนจอง
             </p>
+            <LineAddFriend variant="button" className="mt-4" />
           </div>
 
           {/* Sources */}

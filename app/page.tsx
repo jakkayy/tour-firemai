@@ -6,6 +6,7 @@ import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import TourCard from "@/components/TourCard";
+import LineAddFriend from "@/components/LineAddFriend";
 import Link from "next/link";
 
 type TourWithSource = Tour & { source_name: string };
@@ -163,6 +164,8 @@ export default async function Home() {
               </div>
             </>
           )}
+
+          <LineAddFriend className="mt-14" />
         </div>
       </section>
     </>
