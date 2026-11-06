@@ -18,21 +18,17 @@ def get_client() -> Client:
     return _client
 
 
-def get_existing_urls(source_id: int) -> set[str]:
-    """All tour_urls already stored for a source (active or not)."""
+def get_existing_urls(source_id: int, active_only: bool = False) -> set[str]:
+    """tour_urls already stored for a source (active or not, unless active_only)."""
     client = get_client()
     urls: set[str] = set()
     page_size = 1000
     start = 0
     while True:
-        rows = (
-            client.table("tours")
-            .select("tour_url")
-            .eq("source_id", source_id)
-            .range(start, start + page_size - 1)
-            .execute()
-            .data
-        )
+        query = client.table("tours").select("tour_url").eq("source_id", source_id)
+        if active_only:
+            query = query.eq("is_active", True)
+        rows = query.range(start, start + page_size - 1).execute().data
         urls.update(r["tour_url"] for r in rows)
         if len(rows) < page_size:
             return urls
@@ -64,14 +60,22 @@ def upsert_tours(tours: list[TourItem]) -> int:
     return len(rows)
 
 
+# PostgREST puts `in` lists in the URL; a few hundred long URLs exceeds what the
+# gateway accepts (400 Bad Request), so deactivate in small batches.
+DEACTIVATE_BATCH = 50
+
+
 def deactivate_missing(source_id: int, active_urls: list[str]) -> None:
     """Mark tours that disappeared from the page as inactive."""
     if not active_urls:
         return
+    missing = sorted(get_existing_urls(source_id, active_only=True) - set(active_urls))
     client = get_client()
-    client.table("tours").update({"is_active": False}).eq(
-        "source_id", source_id
-    ).not_.in_("tour_url", active_urls).execute()
+    for i in range(0, len(missing), DEACTIVATE_BATCH):
+        batch = missing[i : i + DEACTIVATE_BATCH]
+        client.table("tours").update({"is_active": False}).eq(
+            "source_id", source_id
+        ).in_("tour_url", batch).execute()
 
 
 def delete_stale_tours(days: int = 3) -> int:
