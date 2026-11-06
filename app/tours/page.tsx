@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
+import { notDepartedFilter } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourCard from "@/components/TourCard";
@@ -75,7 +76,8 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   let query = supabase
     .from("tours")
     .select("*, sources(name)", { count: "exact" })
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .or(notDepartedFilter());
 
   if (params.q) {
     query = query.ilike("title", `%${params.q}%`);
@@ -131,6 +133,7 @@ const getAvailableCountries = unstable_cache(
       .from("tours")
       .select("title")
       .eq("is_active", true)
+      .or(notDepartedFilter())
       .limit(500);
 
     if (!data) return [];

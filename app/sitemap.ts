@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
+import { notDepartedFilter } from "@/lib/tours";
 
 const BASE_URL = "https://tour-firemai.vercel.app";
 
@@ -8,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from("tours")
     .select("id, updated_at")
     .eq("is_active", true)
+    .or(notDepartedFilter())
     .order("updated_at", { ascending: false })
     .limit(1000);
 

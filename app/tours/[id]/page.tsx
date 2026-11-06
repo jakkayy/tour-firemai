@@ -5,10 +5,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { extractCountry } from "@/lib/countries";
-import type { Tour } from "@/types/database";
+import { todayBangkok } from "@/lib/tours";
+import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
 import ShareButtons from "@/components/ShareButtons";
+import FavoriteButton from "@/components/FavoriteButton";
+import PriceHistory from "@/components/PriceHistory";
 
 const BASE_URL = "https://tour-firemai.vercel.app";
 
@@ -25,6 +28,21 @@ async function getTour(id: number): Promise<TourWithSource | null> {
 
   const row = data[0] as Tour & { sources: { name: string } | null };
   return { ...row, source_name: row.sources?.name ?? "" };
+}
+
+async function getPriceHistory(tourId: number): Promise<PriceHistoryRow[]> {
+  const { data, error } = await supabase
+    .from("price_history")
+    .select("*")
+    .eq("tour_id", tourId)
+    .order("recorded_at", { ascending: true });
+
+  // The page must still render if history is unavailable (e.g. migration 006 not applied yet).
+  if (error) {
+    console.error("getPriceHistory error:", error.message);
+    return [];
+  }
+  return (data ?? []) as PriceHistoryRow[];
 }
 
 export async function generateMetadata({
@@ -80,9 +98,12 @@ export default async function TourDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const tour = await getTour(Number(id));
+  const tourId = Number(id);
+  const [tour, history] = await Promise.all([getTour(tourId), getPriceHistory(tourId)]);
 
   if (!tour) notFound();
+
+  const departed = tour.departure_date != null && tour.departure_date < todayBangkok();
 
   const country = extractCountry(tour.title);
   const price = tour.discounted_price ?? tour.original_price;
@@ -157,6 +178,14 @@ export default async function TourDetailPage({
                 )}
               </div>
 
+              <PriceHistory history={history} asOf={tour.updated_at} />
+
+              {departed && (
+                <p className="bg-amber-50 border border-amber-100 text-amber-700 text-sm rounded-xl px-4 py-3 mb-6">
+                  ทัวร์นี้เดินทางไปแล้ว ราคาและที่นั่งอาจไม่ตรงกับปัจจุบัน
+                </p>
+              )}
+
               {(tour.departure_date || tour.seats_left != null) && (
                 <div className="grid grid-cols-2 gap-3 mb-8">
                   {tour.departure_date && (
@@ -182,6 +211,10 @@ export default async function TourDetailPage({
               >
                 ดูรายละเอียดและจอง
               </a>
+
+              <div className="mb-4">
+                <FavoriteButton tourId={tour.id} variant="full" />
+              </div>
 
               <ShareButtons url={pageUrl} title={tour.title} />
             </div>

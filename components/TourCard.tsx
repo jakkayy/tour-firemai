@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Tour } from "@/types/database";
 import { extractCountry } from "@/lib/countries";
 import TourImage from "./TourImage";
+import FavoriteButton from "./FavoriteButton";
 
 type Props = {
   tour: Tour & { source_name?: string };
@@ -37,79 +38,83 @@ export default function TourCard({ tour, priority = false }: Props) {
   const country = extractCountry(tour.title);
 
   return (
-    <Link
-      href={`/tours/${tour.id}`}
-      className="group flex flex-col rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
-    >
-      {/* Image */}
-      <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-        {tour.image_url ? (
-          <TourImage src={tour.image_url} alt={tour.title} priority={priority} />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 gap-2">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4d4d8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="m21 15-5-5L5 21" />
-            </svg>
-            <span className="text-xs text-zinc-400">ไม่มีรูปภาพ</span>
-          </div>
-        )}
+    <div className="group relative rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+      {/* Sibling of the link, not a child: a button can't be nested inside an anchor */}
+      <FavoriteButton tourId={tour.id} />
+      <Link
+        href={`/tours/${tour.id}`}
+        className="flex flex-col h-full"
+      >
+        {/* Image */}
+        <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
+          {tour.image_url ? (
+            <TourImage src={tour.image_url} alt={tour.title} priority={priority} />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 gap-2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4d4d8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="m21 15-5-5L5 21" />
+              </svg>
+              <span className="text-xs text-zinc-400">ไม่มีรูปภาพ</span>
+            </div>
+          )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-        {discountPct && (
-          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-            ลด {discountPct}%
-          </span>
-        )}
+          {discountPct && (
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+              ลด {discountPct}%
+            </span>
+          )}
 
-        {tour.departure_date && (
-          <span className="absolute bottom-3 left-3 text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
-            {formatDate(tour.departure_date)}
-          </span>
-        )}
+          {tour.departure_date && (
+            <span className="absolute bottom-3 left-3 text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              {formatDate(tour.departure_date)}
+            </span>
+          )}
 
-        {country && (
-          <span className="absolute bottom-3 right-3 text-white text-xs font-semibold bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-            <PinIcon />
-            {country}
-          </span>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-4">
-        <span className="self-start inline-flex items-center text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-0.5 mb-2">
-          {tour.source_name ?? "ทัวร์"}
-        </span>
-        <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1 mb-4">
-          {tour.title}
-        </h2>
-
-        <div className="border-t border-zinc-100 pt-3 flex items-end justify-between gap-2">
-          <div>
-            {tour.original_price && tour.discounted_price && (
-              <p className="text-xs text-zinc-400 line-through leading-none mb-0.5">
-                ฿{formatPrice(tour.original_price)}
-              </p>
-            )}
-            <p className="text-lg font-bold text-red-500 leading-none">
-              {price ? (
-                <>฿{formatPrice(price)}<span className="text-xs font-normal text-zinc-400 ml-1">/ ท่าน</span></>
-              ) : "ติดต่อสอบถาม"}
-            </p>
-            {tour.original_price && tour.discounted_price && (
-              <p className="text-xs text-teal-600 font-medium mt-0.5">
-                ประหยัด ฿{formatPrice(tour.original_price - tour.discounted_price)}
-              </p>
-            )}
-          </div>
-          <span className="shrink-0 text-xs font-semibold text-white bg-teal-500 px-3.5 py-2 rounded-xl group-hover:bg-teal-400 transition-colors">
-            ดูทัวร์ ↗
-          </span>
+          {country && (
+            <span className="absolute bottom-3 right-3 text-white text-xs font-semibold bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+              <PinIcon />
+              {country}
+            </span>
+          )}
         </div>
-      </div>
-    </Link>
+
+        {/* Content */}
+        <div className="flex flex-col flex-1 p-4">
+          <span className="self-start inline-flex items-center text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-0.5 mb-2">
+            {tour.source_name ?? "ทัวร์"}
+          </span>
+          <h2 className="text-sm font-semibold text-zinc-800 line-clamp-2 leading-snug flex-1 mb-4">
+            {tour.title}
+          </h2>
+
+          <div className="border-t border-zinc-100 pt-3 flex items-end justify-between gap-2">
+            <div>
+              {tour.original_price && tour.discounted_price && (
+                <p className="text-xs text-zinc-400 line-through leading-none mb-0.5">
+                  ฿{formatPrice(tour.original_price)}
+                </p>
+              )}
+              <p className="text-lg font-bold text-red-500 leading-none">
+                {price ? (
+                  <>฿{formatPrice(price)}<span className="text-xs font-normal text-zinc-400 ml-1">/ ท่าน</span></>
+                ) : "ติดต่อสอบถาม"}
+              </p>
+              {tour.original_price && tour.discounted_price && (
+                <p className="text-xs text-teal-600 font-medium mt-0.5">
+                  ประหยัด ฿{formatPrice(tour.original_price - tour.discounted_price)}
+                </p>
+              )}
+            </div>
+            <span className="shrink-0 text-xs font-semibold text-white bg-teal-500 px-3.5 py-2 rounded-xl group-hover:bg-teal-400 transition-colors">
+              ดูทัวร์ ↗
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 }
