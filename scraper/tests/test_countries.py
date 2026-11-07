@@ -100,3 +100,35 @@ def test_website_lists_match_the_scraper_lists():
     assert _ts_array(source, "COUNTRY_LIST") == COUNTRIES
     assert set(_ts_array(source, "EUROPEAN_COUNTRIES")) == EUROPEAN_COUNTRIES
     assert _ts_array(source, "IGNORED_PHRASES") == C.IGNORED_PHRASES
+
+
+# --- flags ---------------------------------------------------------------------------------------
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def _country_codes() -> dict[str, str]:
+    source = (ROOT / "lib" / "countries.ts").read_text(encoding="utf-8")
+    block = re.search(r"COUNTRY_CODES[^=]*=\s*\{(.*?)\}", source, re.S)
+    assert block, "COUNTRY_CODES not found in lib/countries.ts"
+    return dict(re.findall(r'"([^"]+)"\s*:\s*"([^"]+)"', block.group(1)))
+
+
+def test_every_country_has_a_flag_code_and_nothing_else_does():
+    assert list(_country_codes()) == COUNTRIES
+
+
+def test_flag_codes_look_like_iso_codes_and_are_not_reused():
+    codes = list(_country_codes().values())
+    assert all(re.fullmatch(r"[a-z]{2}", code) for code in codes)
+    assert len(codes) == len(set(codes))
+
+
+def test_every_flag_code_has_a_file_and_every_file_is_used():
+    codes = set(_country_codes().values())
+    files = {p.stem for p in (ROOT / "public" / "flags").glob("*.svg")}
+    assert codes - files == set(), "flag files missing"
+    assert files - codes == set(), "flag files nobody uses"
+    for code in codes:
+        text = (ROOT / "public" / "flags" / f"{code}.svg").read_text(encoding="utf-8")
+        assert text.lstrip().startswith("<svg") and "viewBox" in text

@@ -30,6 +30,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - "Add LINE friend" button to receive those alerts
 - Favorites: save tours with the heart icon (stored in the browser, no login) and review them at `/favorites`
 - Filter by destination (multi-select; a tour can belong to several countries), departure month, price range, and sort order — see [Countries](#countries)
+- Country, budget and month fields on the home page can be typed into as well as picked from the list (arrow keys and Enter work); countries show their flag
 - Displays discount percentage, original price, and departure date
 - Image fallback when tour photo fails to load
 - Mobile-friendly with a filter drawer on small screens
@@ -68,9 +69,11 @@ tour-firemai/
 │   ├── tours/error.tsx       # Tours error boundary
 │   ├── tours/loading.tsx     # Tours skeleton
 │   └── icon.svg              # Favicon
+├── public/flags/            # SVG flags (flag-icons, MIT); licence and notes inside
 ├── components/
 │   ├── Navbar.tsx
 │   ├── MobileMenu.tsx
+│   ├── CountryFlag.tsx       # Flag icon from public/flags (decorative)
 │   ├── HeroSection.tsx       # Search bar with 4 dropdowns
 │   ├── TourCard.tsx
 │   ├── TourImage.tsx         # Client component with image fallback
@@ -113,7 +116,7 @@ tour-firemai/
 │       ├── conftest.py
 │       ├── test_parsers.py   # parser tests for all scrapers
 │       ├── test_filters.py   # departed-tour filter tests
-│       ├── test_countries.py # Country detection + list sync with lib/countries.ts
+│       ├── test_countries.py # Country detection + list/flag sync with lib/countries.ts
 │       ├── test_thai_text.py # Mark-order fix
 │       ├── test_notify.py    # Flex message + alert rules
 │       ├── test_revalidate.py # Website refresh call
@@ -279,7 +282,7 @@ Detecting them takes more than looking for a country name, so `scraper/countries
 
 Titles from some sites store the tone mark before the vowel sign (`ป` `่` `ุ` instead of `ป` `ุ` `่`). It looks identical but never matches a search for "ญี่ปุ่น", so `scraper/thai_text.py` puts every title in the usual order before it is saved. This also fixed the search box for those tours.
 
-To add a country: add it, with its words, to `COUNTRY_KEYWORDS` in `scraper/countries.py` **and** to `COUNTRY_LIST` in `lib/countries.ts` (and the European sets if it is in Europe). A test fails if the two lists differ.
+To add a country: add it, with its words, to `COUNTRY_KEYWORDS` in `scraper/countries.py` **and** to `COUNTRY_LIST` and `COUNTRY_CODES` in `lib/countries.ts` (and the European sets if it is in Europe), and add its flag as `public/flags/<code>.svg`. A test fails if the lists differ or a flag file is missing or unused.
 
 **Rolling it out, in this order:**
 
