@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from base_scraper import drop_departed
+from base_scraper import drop_departed, prepare_tours
 from db import upsert_tours, deactivate_missing, delete_stale_tours
 from notify import run_notifications
 from revalidate import trigger_revalidation
@@ -30,7 +30,7 @@ async def run_scraper(scraper, retries: int = 2) -> bool:
     for attempt in range(retries + 1):
         try:
             scraped = await scraper.scrape()
-            tours = drop_departed(scraped)
+            tours = prepare_tours(drop_departed(scraped))
             skipped = len(scraped) - len(tours)
             if skipped:
                 print(f"[{name}] skipped {skipped} tours already departed")

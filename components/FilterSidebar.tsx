@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
 
 type Params = {
@@ -79,6 +80,7 @@ function FilterContent({
                 onChange={() => toggleCountry(c)}
                 className="w-4 h-4 rounded border-zinc-300 accent-teal-500 cursor-pointer"
               />
+              <CountryFlag country={c} size={18} />
               <span className="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">
                 {c}
               </span>

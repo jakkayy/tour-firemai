@@ -93,3 +93,33 @@ def test_nothing_scraped_deactivates_nothing(monkeypatch):
 def test_reads_all_pages_of_existing_urls(monkeypatch):
     monkeypatch.setattr(db, "get_client", lambda: FakeClient(_store(2500)))
     assert len(db.get_existing_urls(4)) == 2500
+
+
+class UpsertClient:
+    def __init__(self):
+        self.rows, self.conflict = None, None
+
+    def table(self, _):
+        return self
+
+    def upsert(self, rows, on_conflict):
+        self.rows, self.conflict = rows, on_conflict
+        return self
+
+    def execute(self):
+        return type("R", (), {"data": []})()
+
+
+def test_upsert_saves_the_countries_of_each_tour(monkeypatch):
+    from base_scraper import TourItem
+
+    client = UpsertClient()
+    monkeypatch.setattr(db, "get_client", lambda: client)
+    tours = [
+        TourItem(title="ทัวร์สวิตเซอร์แลนด์ – ฝรั่งเศส", tour_url="https://x.test/1", source_id=7, countries=["สวิตเซอร์แลนด์", "ฝรั่งเศส", "ยุโรป"]),
+        TourItem(title="no place named", tour_url="https://x.test/2", source_id=7),
+    ]
+    assert db.upsert_tours(tours) == 2
+    assert client.conflict == "tour_url"
+    assert [r["countries"] for r in client.rows] == [["สวิตเซอร์แลนด์", "ฝรั่งเศส", "ยุโรป"], []]
+

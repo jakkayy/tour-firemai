@@ -44,3 +44,12 @@ def test_a_failing_source_reports_failure(monkeypatch):
 
     monkeypatch.setattr(main, "upsert_tours", boom)
     assert asyncio.run(main.run_scraper(FakeScraper([_tour("a")]), retries=0)) is False
+
+
+def test_titles_are_tidied_and_countries_stored_before_saving(monkeypatch):
+    scraped_title = "ทัวร์" + "".join(chr(int(c, 16)) for c in "0E0D 0E35 0E48 0E1B 0E48 0E38 0E19".split()) + " โตเกียว"
+    ok, upserted, _ = _run(monkeypatch, [TourItem(title=scraped_title, tour_url="a", source_id=7, departure_date=FUTURE)])
+    assert ok
+    saved = upserted[0]
+    assert "ญี่ปุ่น" in saved.title  # the searchable spelling, not the scraped one
+    assert saved.countries == ["ญี่ปุ่น"]

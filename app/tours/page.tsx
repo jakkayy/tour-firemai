@@ -1,10 +1,10 @@
 export const revalidate = 21600;
 
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
+import { COUNTRY_LIST } from "@/lib/countries";
+import { getAvailableCountries } from "@/lib/available-countries";
 import { notDepartedFilter } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
@@ -73,49 +73,61 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   const from = (page - 1) * PER_PAGE;
   const to = from + PER_PAGE - 1;
 
-  let query = supabase
-    .from("tours")
-    .select("*, sources(name)", { count: "exact" })
-    .eq("is_active", true)
-    .or(notDepartedFilter());
+  // `useCountryColumn` is false only as a fallback, see below
+  const run = async (useCountryColumn: boolean) => {
+    let query = supabase
+      .from("tours")
+      .select("*, sources(name)", { count: "exact" })
+      .eq("is_active", true)
+      .or(notDepartedFilter());
 
-  if (params.q) {
-    query = query.ilike("title", `%${params.q}%`);
-  }
-
-  if (params.countries) {
-    const list = params.countries
-      .split(",")
-      .filter((c) => COUNTRY_LIST.includes(c));
-    if (list.length === 1) {
-      query = query.ilike("title", `%${list[0]}%`);
-    } else if (list.length > 1) {
-      query = query.or(list.map((c) => `title.ilike.%${c}%`).join(","));
+    if (params.q) {
+      query = query.ilike("title", `%${params.q}%`);
     }
-  }
 
-  if (params.month && /^\d{4}-\d{2}$/.test(params.month)) {
-    const [y, m] = params.month.split("-").map(Number);
-    const firstDay = `${y}-${String(m).padStart(2, "0")}-01`;
-    const lastDay = new Date(y, m, 0).getDate();
-    const lastDayStr = `${y}-${String(m).padStart(2, "0")}-${lastDay}`;
-    query = query.gte("departure_date", firstDay).lte("departure_date", lastDayStr);
-  }
+    if (params.countries) {
+      const list = params.countries
+        .split(",")
+        .filter((c) => COUNTRY_LIST.includes(c));
+      if (list.length > 0 && useCountryColumn) {
+        // A tour matches when it visits any of the chosen countries
+        query = query.overlaps("countries", list);
+      } else if (list.length === 1) {
+        query = query.ilike("title", `%${list[0]}%`);
+      } else if (list.length > 1) {
+        query = query.or(list.map((c) => `title.ilike.%${c}%`).join(","));
+      }
+    }
 
-  if (params.min) query = query.gte("discounted_price", Number(params.min));
-  if (params.max) query = query.lte("discounted_price", Number(params.max));
+    if (params.month && /^\d{4}-\d{2}$/.test(params.month)) {
+      const [y, m] = params.month.split("-").map(Number);
+      const firstDay = `${y}-${String(m).padStart(2, "0")}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      const lastDayStr = `${y}-${String(m).padStart(2, "0")}-${lastDay}`;
+      query = query.gte("departure_date", firstDay).lte("departure_date", lastDayStr);
+    }
 
-  if (params.sort === "price_asc") {
-    query = query.order("discounted_price", { ascending: true });
-  } else if (params.sort === "price_desc") {
-    query = query.order("discounted_price", { ascending: false });
-  } else if (params.sort === "date") {
-    query = query.order("departure_date", { ascending: true }).not("departure_date", "is", null);
-  } else {
-    query = query.order("discount_percent", { ascending: false });
-  }
+    if (params.min) query = query.gte("discounted_price", Number(params.min));
+    if (params.max) query = query.lte("discounted_price", Number(params.max));
 
-  const { data, count, error } = await query.range(from, to);
+    if (params.sort === "price_asc") {
+      query = query.order("discounted_price", { ascending: true });
+    } else if (params.sort === "price_desc") {
+      query = query.order("discounted_price", { ascending: false });
+    } else if (params.sort === "date") {
+      query = query.order("departure_date", { ascending: true }).not("departure_date", "is", null);
+    } else {
+      query = query.order("discount_percent", { ascending: false });
+    }
+
+    return query.range(from, to);
+  };
+
+  let result = await run(true);
+  // 42703 = undefined column: the site went live before migration 008 (the countries column) was
+  // applied. Match on the title as before instead of breaking the page.
+  if (result.error?.code === "42703") result = await run(false);
+  const { data, count, error } = result;
   if (error) throw new Error(`getTours: ${error.message}`);
 
   return {
@@ -126,28 +138,6 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
     total: count ?? 0,
   };
 }
-
-const getAvailableCountries = unstable_cache(
-  async (): Promise<string[]> => {
-    const { data } = await supabase
-      .from("tours")
-      .select("title")
-      .eq("is_active", true)
-      .or(notDepartedFilter())
-      .limit(500);
-
-    if (!data) return [];
-    const found = new Set<string>();
-    data.forEach(({ title }) => {
-      const c = extractCountry(title);
-      if (c) found.add(c);
-    });
-    return COUNTRY_LIST.filter((c) => found.has(c));
-  },
-  ["available-countries"],
-  // The tag lets /api/revalidate refresh this right after a scrape
-  { revalidate: 21600, tags: ["tours"] }
-);
 
 export default async function ToursPage({
   searchParams,

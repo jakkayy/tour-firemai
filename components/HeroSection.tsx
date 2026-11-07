@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { COUNTRY_LIST } from "@/lib/countries";
+import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
 
 const BG_IMAGE =
@@ -47,7 +47,8 @@ function SearchIcon() {
 }
 
 
-export default function HeroSection({ selectedCountry }: { selectedCountry?: string }) {
+// `countries` are the ones that have tours right now (see getAvailableCountries)
+export default function HeroSection({ selectedCountry, countries }: { selectedCountry?: string; countries: string[] }) {
   const router = useRouter();
   const [country, setCountry] = useState(selectedCountry ?? "");
   const [budget, setBudget] = useState("");
@@ -102,11 +103,12 @@ export default function HeroSection({ selectedCountry }: { selectedCountry?: str
             variant="light"
             options={[
               { value: "", label: "ทุกประเทศ" },
-              ...COUNTRY_LIST.map((c) => ({ value: c, label: c })),
+              ...countries.map((c) => ({ value: c, label: c, icon: <CountryFlag country={c} /> })),
             ]}
             value={country}
             onChange={setCountry}
             placeholder="ทุกประเทศ"
+            searchable
             className="flex-1"
           />
 

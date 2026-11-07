@@ -7,6 +7,7 @@ import { notDepartedFilter } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import { getAvailableCountries } from "@/lib/available-countries";
 import TourCard from "@/components/TourCard";
 import LineAddFriend from "@/components/LineAddFriend";
 import Link from "next/link";
@@ -81,12 +82,17 @@ function ListIcon() {
 }
 
 export default async function Home() {
-  const [tours, tourCount, lastUpdated] = await Promise.all([getFeaturedTours(), getTourCount(), getLastUpdated()]);
+  const [tours, tourCount, lastUpdated, countries] = await Promise.all([
+    getFeaturedTours(),
+    getTourCount(),
+    getLastUpdated(),
+    getAvailableCountries(),
+  ]);
 
   return (
     <>
       <Navbar />
-      <HeroSection />
+      <HeroSection countries={countries} />
 
       {/* Stat strip */}
       <div className="bg-white border-b border-zinc-100">

@@ -29,7 +29,8 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Price history chart on each tour, with a "lowest price seen" badge
 - "Add LINE friend" button to receive those alerts
 - Favorites: save tours with the heart icon (stored in the browser, no login) and review them at `/favorites`
-- Filter by destination (multi-select), departure month, price range, and sort order
+- Filter by destination (multi-select; a tour can belong to several countries), departure month, price range, and sort order — see [Countries](#countries)
+- The country field on the home page can be typed into as well as picked from the list (arrow keys and Enter work); countries show their flag
 - Displays discount percentage, original price, and departure date
 - Image fallback when tour photo fails to load
 - Mobile-friendly with a filter drawer on small screens
@@ -68,9 +69,11 @@ tour-firemai/
 │   ├── tours/error.tsx       # Tours error boundary
 │   ├── tours/loading.tsx     # Tours skeleton
 │   └── icon.svg              # Favicon
+├── public/flags/            # SVG flags (flag-icons, MIT); licence and notes inside
 ├── components/
 │   ├── Navbar.tsx
 │   ├── MobileMenu.tsx
+│   ├── CountryFlag.tsx       # Flag icon from public/flags (decorative)
 │   ├── HeroSection.tsx       # Search bar with 4 dropdowns
 │   ├── TourCard.tsx
 │   ├── TourImage.tsx         # Client component with image fallback
@@ -88,12 +91,15 @@ tour-firemai/
 │   ├── supabase.ts
 │   ├── tours.ts              # "not departed yet" filter
 │   ├── favorites.ts          # useFavorites() hook
-│   └── countries.ts          # COUNTRY_LIST whitelist
+│   ├── countries.ts          # COUNTRY_LIST (must match scraper/countries.py) + label helpers
+│   └── available-countries.ts # Countries that have tours, for the filter and home search box
 ├── types/
 │   └── database.ts
 ├── scraper/
 │   ├── main.py               # Entry point + retry logic + cleanup
 │   ├── base_scraper.py       # Abstract base class
+│   ├── countries.py          # Which countries a tour visits, from its title
+│   ├── thai_text.py          # Puts Thai tone marks and vowel signs in the usual order
 │   ├── notify.py             # LINE Flex Message alerts
 │   ├── revalidate.py         # Tells the website to refresh after a scrape
 │   ├── preview_flex.py       # Preview / validate the alert card
@@ -110,6 +116,8 @@ tour-firemai/
 │       ├── conftest.py
 │       ├── test_parsers.py   # parser tests for all scrapers
 │       ├── test_filters.py   # departed-tour filter tests
+│       ├── test_countries.py # Country detection + list/flag sync with lib/countries.ts
+│       ├── test_thai_text.py # Mark-order fix
 │       ├── test_notify.py    # Flex message + alert rules
 │       ├── test_revalidate.py # Website refresh call
 │       ├── test_db.py
@@ -121,7 +129,8 @@ tour-firemai/
 │   ├── 004_add_navarich_source.sql
 │   ├── 005_enable_rls.sql
 │   ├── 006_price_history.sql
-│   └── 007_notified_at.sql
+│   ├── 007_notified_at.sql
+│   └── 008_tour_countries.sql
 └── .github/workflows/
     ├── ci.yml                # pytest on every push/PR
     └── scrape.yml            # cron: 0 */6 * * *
@@ -260,9 +269,28 @@ supabase/migrations/004_add_navarich_source.sql
 supabase/migrations/005_enable_rls.sql
 supabase/migrations/006_price_history.sql
 supabase/migrations/007_notified_at.sql
+supabase/migrations/008_tour_countries.sql
 ```
 
 Run them in this order on an empty database: the scrapers use hardcoded `source_id` values that depend on insert order.
+
+### Countries
+
+Each tour has a `countries` list in the database (`tours.countries`, a Postgres array with a GIN index), set by the scraper from the title on every run. The site filters on it ("any of the chosen countries"), shows up to two countries on a card, and builds the filter and the home search box from the countries that actually have tours.
+
+Detecting them takes more than looking for a country name, so `scraper/countries.py` also knows well-known cities and sights (`Qingdao`, `ฟุกุโอกะ`), English spellings, alternative Thai spellings (`ตุรเคีย`, `เมียนมาร์`), and that a tour naming a European country is also a `ยุโรป` tour. Words that merely look like a place are left out on purpose (`เว้`, `โรม`, `เช็ก`, `ไคโร`, `เวนิส`) and a few tours stay without a country rather than get a wrong one.
+
+Titles from some sites store the tone mark before the vowel sign (`ป` `่` `ุ` instead of `ป` `ุ` `่`). It looks identical but never matches a search for "ญี่ปุ่น", so `scraper/thai_text.py` puts every title in the usual order before it is saved. This also fixed the search box for those tours.
+
+To add a country: add it, with its words, to `COUNTRY_KEYWORDS` in `scraper/countries.py` **and** to `COUNTRY_LIST` and `COUNTRY_CODES` in `lib/countries.ts` (and the European sets if it is in Europe), and add its flag as `public/flags/<code>.svg`. A test fails if the lists differ or a flag file is missing or unused.
+
+**Rolling it out, in this order:**
+
+1. Run `supabase/migrations/008_tour_countries.sql` in the Supabase SQL Editor. It adds the column, tidies existing titles and gives existing tours a first set of countries.
+2. Merge, so the site and the scraper are deployed.
+3. Run the scraper once (Actions → Scrape Tours → Run workflow). It fills in the full detection for every active tour.
+
+If the site is deployed before step 1, nothing breaks: without the column it falls back to matching country names in the title, as before.
 
 ### Sources
 
