@@ -53,3 +53,23 @@ def test_titles_are_tidied_and_countries_stored_before_saving(monkeypatch):
     saved = upserted[0]
     assert "ญี่ปุ่น" in saved.title  # the searchable spelling, not the scraped one
     assert saved.countries == ["ญี่ปุ่น"]
+
+
+def test_scraper_is_given_the_pictures_already_stored(monkeypatch):
+    scraper = FakeScraper([_tour("a")])
+    monkeypatch.setattr(main, "get_known_images", lambda source_id: {"a": "https://x.test/a.jpg"})
+    monkeypatch.setattr(main, "upsert_tours", lambda tours: len(tours))
+    monkeypatch.setattr(main, "deactivate_missing", lambda *a: None)
+    assert asyncio.run(main.run_scraper(scraper, retries=0)) is True
+    assert scraper.known_images == {"a": "https://x.test/a.jpg"}
+
+
+def test_a_failed_read_of_stored_pictures_does_not_stop_the_scrape(monkeypatch):
+    def boom(source_id):
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(main, "get_known_images", boom)
+    monkeypatch.setattr(main, "upsert_tours", lambda tours: len(tours))
+    monkeypatch.setattr(main, "deactivate_missing", lambda *a: None)
+    assert asyncio.run(main.run_scraper(FakeScraper([_tour("a")]), retries=0)) is True
+

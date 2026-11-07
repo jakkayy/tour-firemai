@@ -237,3 +237,25 @@ class TestNavarichParseDeparture:
 
     def test_empty(self):
         assert nr_departure("") is None
+
+
+class TestTravelzeedPriceFromBadge:
+    """Some cards show no crossed-out price, only a '฿X off' badge on the picture."""
+
+    def test_original_price_is_the_price_paid_plus_the_saving(self):
+        from scrapers.travelzeed import _price_from_badge
+
+        assert _price_from_badge(14888.0, "1,000฿") == 15888.0
+
+    def test_no_badge_or_no_price_gives_nothing(self):
+        from scrapers.travelzeed import _price_from_badge
+
+        assert _price_from_badge(14888.0, "") is None
+        assert _price_from_badge(None, "1,000฿") is None
+        assert _price_from_badge(0.0, "1,000฿") is None
+
+    def test_a_saving_bigger_than_the_price_paid_is_not_believed(self):
+        from scrapers.travelzeed import _price_from_badge
+
+        assert _price_from_badge(8000.0, "9,000฿") is None
+        assert _price_from_badge(8000.0, "8,000฿") == 16000.0  # exactly half off is the limit

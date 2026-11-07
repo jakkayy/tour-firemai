@@ -123,3 +123,45 @@ def test_upsert_saves_the_countries_of_each_tour(monkeypatch):
     assert client.conflict == "tour_url"
     assert [r["countries"] for r in client.rows] == [["สวิตเซอร์แลนด์", "ฝรั่งเศส", "ยุโรป"], []]
 
+
+class KnownImagesClient:
+    """Enough of the query builder for get_known_images: pages of rows that have an image."""
+
+    def __init__(self, rows):
+        self.rows, self.start, self.end, self.filters = rows, 0, 0, {}
+
+    def table(self, _):
+        return self
+
+    def select(self, *_):
+        return self
+
+    def eq(self, col, val):
+        self.filters[col] = val
+        return self
+
+    @property
+    def not_(self):
+        return self
+
+    def is_(self, col, val):
+        self.filters[f"not {col} is"] = val
+        return self
+
+    def range(self, start, end):
+        self.start, self.end = start, end
+        return self
+
+    def execute(self):
+        mine = [r for r in self.rows if r["source_id"] == self.filters["source_id"] and r["image_url"]]
+        return type("R", (), {"data": [{"tour_url": r["tour_url"], "image_url": r["image_url"]} for r in mine[self.start : self.end + 1]]})()
+
+
+def test_known_images_maps_every_stored_tour_with_a_picture(monkeypatch):
+    rows = [{"source_id": 5, "tour_url": f"u{i}", "image_url": f"i{i}" if i % 3 else None} for i in range(2500)]
+    rows += [{"source_id": 9, "tour_url": "other", "image_url": "other.jpg"}]
+    monkeypatch.setattr(db, "get_client", lambda: KnownImagesClient(rows))
+    images = db.get_known_images(5)
+    assert len(images) == sum(1 for r in rows[:2500] if r["image_url"])  # all pages read, none without a picture
+    assert images["u1"] == "i1" and "u0" not in images and "other" not in images
+

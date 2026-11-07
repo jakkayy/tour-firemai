@@ -12,6 +12,9 @@ function buildUrl(page: number, params: Record<string, string | undefined>) {
   if (params.min) p.set("min", params.min);
   if (params.max) p.set("max", params.max);
   if (params.sort) p.set("sort", params.sort);
+  if (params.month) p.set("month", params.month);
+  if (params.q) p.set("q", params.q);
+  if (params.within) p.set("within", params.within);
   p.set("page", String(page));
   return `/tours?${p.toString()}`;
 }

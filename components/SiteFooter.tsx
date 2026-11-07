@@ -1,4 +1,6 @@
+import Link from "next/link";
 import LineAddFriend from "./LineAddFriend";
+import CookieSettingsButton from "./CookieSettingsButton";
 
 const SOURCES = [
   { name: "TravelZeed Fire", url: "https://www.travelzeed.com/fire" },
@@ -51,8 +53,10 @@ export default function SiteFooter() {
           <div>
             <p className="text-white font-semibold text-sm mb-3">เมนู</p>
             <ul className="space-y-1.5">
-              <li><a href="/" className="text-xs hover:text-teal-400 transition-colors">หน้าแรก</a></li>
-              <li><a href="/tours" className="text-xs hover:text-teal-400 transition-colors">ทัวร์ทั้งหมด</a></li>
+              <li><Link href="/" className="text-xs hover:text-teal-400 transition-colors">หน้าแรก</Link></li>
+              <li><Link href="/tours" className="text-xs hover:text-teal-400 transition-colors">ทัวร์ทั้งหมด</Link></li>
+              <li><Link href="/privacy" className="text-xs hover:text-teal-400 transition-colors">นโยบายความเป็นส่วนตัว</Link></li>
+              <li><CookieSettingsButton /></li>
             </ul>
           </div>
 

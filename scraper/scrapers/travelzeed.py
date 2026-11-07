@@ -36,6 +36,19 @@ def _parse_departure(month_text: str, day_text: str) -> date | None:
         return None
 
 
+def _price_from_badge(discounted: float | None, badge_text: str) -> float | None:
+    """The original price of a card that shows only a "฿X off" badge: price paid plus X.
+
+    Where a card shows both, the badge equals the gap between the two prices on about 95% of them,
+    so it is the site's own statement of the saving. A saving bigger than the price paid (over half
+    off) is not believed from a badge alone.
+    """
+    saving = _parse_price(badge_text) if badge_text else None
+    if not discounted or not saving or saving > discounted:
+        return None
+    return discounted + saving
+
+
 class TravelzeedScraper(BaseScraper):
     async def scrape(self) -> list[TourItem]:
         async with async_playwright() as pw:
@@ -64,6 +77,7 @@ class TravelzeedScraper(BaseScraper):
                     const imgEl = card.querySelector('.tour-image picture img')
                     const oldEl = card.querySelector('.oldPrice')
                     const discEl = card.querySelector('.defaultPrice')
+                    const badgeEl = card.querySelector('.promotion-text')
                     const monthEl = card.querySelector('.period_month_font')
                     const dayEl = card.querySelector('.period_day_font')
                     results.push({
@@ -72,6 +86,7 @@ class TravelzeedScraper(BaseScraper):
                         image: imgEl ? imgEl.getAttribute('src') : null,
                         oldPrice: oldEl ? oldEl.textContent.trim() : '',
                         discPrice: discEl ? discEl.textContent.trim() : '',
+                        badge: badgeEl ? badgeEl.textContent.trim() : '',
                         month: monthEl ? monthEl.textContent.trim() : '',
                         day: dayEl ? dayEl.textContent.trim() : '',
                     })
@@ -93,8 +108,9 @@ class TravelzeedScraper(BaseScraper):
                 continue
             seen.add(tour_url)
 
-            original_price = _parse_price(c["oldPrice"])
             discounted_price = _parse_price(c["discPrice"])
+            # Some cards show no crossed-out price, only the "฿X off" badge on the picture
+            original_price = _parse_price(c["oldPrice"]) or _price_from_badge(discounted_price, c.get("badge", ""))
             discount_percent = (
                 self._calc_discount(original_price, discounted_price)
                 if original_price and discounted_price

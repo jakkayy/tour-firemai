@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST } from "@/lib/countries";
 import { getAvailableCountries } from "@/lib/available-countries";
-import { notDepartedFilter } from "@/lib/tours";
+import { addDays, notDepartedFilter, parseWithin, todayBangkok } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourCard from "@/components/TourCard";
@@ -23,6 +23,7 @@ type Params = {
   page?: string;
   month?: string;
   q?: string;
+  within?: string;
 };
 
 export async function generateMetadata({
@@ -105,6 +106,13 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
       const lastDay = new Date(y, m, 0).getDate();
       const lastDayStr = `${y}-${String(m).padStart(2, "0")}-${lastDay}`;
       query = query.gte("departure_date", firstDay).lte("departure_date", lastDayStr);
+    }
+
+    // "Leaving within N days": from today to N days ahead (tours with no date are left out, as with the month filter)
+    const within = parseWithin(params.within);
+    if (within) {
+      const today = todayBangkok();
+      query = query.gte("departure_date", today).lte("departure_date", addDays(today, within));
     }
 
     if (params.min) query = query.gte("discounted_price", Number(params.min));

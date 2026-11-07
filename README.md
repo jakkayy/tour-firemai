@@ -29,6 +29,8 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Price history chart on each tour, with a "lowest price seen" badge
 - "Add LINE friend" button to receive those alerts
 - Favorites: save tours with the heart icon (stored in the browser, no login) and review them at `/favorites`
+- The search box on the tours page shows results as you type (the Search button still works); the "when" filter offers "within 7 days" next to the months (one choice, so they cannot cancel each other out)
+- Privacy: a cookie banner asks before Microsoft Clarity is loaded (nothing from Clarity is requested until "accept"), the choice can be changed from the footer, and `/privacy` explains the data in Thai (PDPA).
 - Filter by destination (multi-select; a tour can belong to several countries), departure month, price range, and sort order — see [Countries](#countries)
 - The country field on the home page can be typed into as well as picked from the list (arrow keys and Enter work); countries show their flag
 - Displays discount percentage, original price, and departure date
@@ -43,6 +45,9 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Email notification via GitHub Actions when a scraper fails
 - Deletes tours inactive for more than 3 days after each run
 - Skips tours already departed, so they are deactivated and cleaned up with the rest
+- UniThai's list page has no pictures, so each tour's picture is read once from its own page (the `og:image` tag) and kept; at most 80 pages per run, so the first runs fill them in gradually
+- TravelZeed cards without a crossed-out price show only a "฿X off" badge; the original price is the price paid plus X (the badge matches the gap between the two prices on about 95% of the cards that show both)
+- Tours without a picture show their country's flag and name instead of an empty box
 - Sends followers of the LINE account a morning Flex Message carousel of new deals discounting 30%+, by default at most once a day (optional, see [LINE alerts](#line-alerts))
 
 **Security**
