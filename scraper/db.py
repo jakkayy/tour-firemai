@@ -35,6 +35,28 @@ def get_existing_urls(source_id: int, active_only: bool = False) -> set[str]:
         start += page_size
 
 
+def get_known_images(source_id: int) -> dict[str, str]:
+    """tour_url -> image_url for every stored tour of a source that has an image."""
+    client = get_client()
+    images: dict[str, str] = {}
+    page_size = 1000
+    start = 0
+    while True:
+        rows = (
+            client.table("tours")
+            .select("tour_url,image_url")
+            .eq("source_id", source_id)
+            .not_.is_("image_url", "null")
+            .range(start, start + page_size - 1)
+            .execute()
+            .data
+        )
+        images.update({r["tour_url"]: r["image_url"] for r in rows})
+        if len(rows) < page_size:
+            return images
+        start += page_size
+
+
 def upsert_tours(tours: list[TourItem]) -> int:
     if not tours:
         return 0

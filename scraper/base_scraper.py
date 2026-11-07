@@ -26,6 +26,9 @@ class TourItem:
 class BaseScraper(ABC):
     def __init__(self, source_id: int):
         self.source_id = source_id
+        # tour_url -> image_url already stored for this source. A scraper whose list page has no
+        # pictures uses it to fetch each tour's image only once. Filled in by main before scraping.
+        self.known_images: dict[str, str] = {}
 
     @abstractmethod
     async def scrape(self) -> list[TourItem]:

@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from base_scraper import drop_departed, prepare_tours
-from db import upsert_tours, deactivate_missing, delete_stale_tours
+from db import get_known_images, upsert_tours, deactivate_missing, delete_stale_tours
 from notify import run_notifications
 from revalidate import trigger_revalidation
 from scrapers.travelzeed import TravelzeedScraper
@@ -29,6 +29,10 @@ async def run_scraper(scraper, retries: int = 2) -> bool:
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         try:
+            try:
+                scraper.known_images = get_known_images(scraper.source_id)
+            except Exception as e:  # only saves work, so a failed read must not stop the scrape
+                print(f"[{name}] could not read known images ({e}), fetching them all", file=sys.stderr)
             scraped = await scraper.scrape()
             tours = prepare_tours(drop_departed(scraped))
             skipped = len(scraped) - len(tours)

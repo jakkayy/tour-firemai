@@ -1,5 +1,10 @@
+import asyncio
 import re
+import sys
 from datetime import date, datetime
+from urllib.parse import urlsplit
+
+import httpx
 from playwright.async_api import async_playwright
 from base_scraper import BaseScraper, TourItem
 
@@ -11,6 +16,89 @@ THAI_MONTHS = {
     "พ.ค.": 5, "มิ.ย.": 6, "ก.ค.": 7, "ส.ค.": 8,
     "ก.ย.": 9, "ต.ค.": 10, "พ.ย.": 11, "ธ.ค.": 12,
 }
+
+
+# The list page has no pictures; each tour's own page names one in its og:image tag. A tour's
+# picture is fetched once (see BaseScraper.known_images), and only this many per run, so the
+# first run fills them in over a few runs without hammering the site.
+IMAGE_FETCHES_PER_RUN = 80
+IMAGE_FETCH_PAUSE = 0.4  # seconds between requests
+IMAGE_FETCH_CONCURRENCY = 3
+_HEAD_LIMIT = 200_000  # og:image is in <head>, so stop reading once it has gone by
+
+_OG_IMAGE = re.compile(
+    r"""<meta\s[^>]*?property\s*=\s*["']og:image["'][^>]*?content\s*=\s*["']([^"']+)["']"""
+    r"""|<meta\s[^>]*?content\s*=\s*["']([^"']+)["'][^>]*?property\s*=\s*["']og:image["']""",
+    re.IGNORECASE,
+)
+
+
+def _parse_og_image(html: str) -> str | None:
+    """The picture a tour page names for itself, if it is an https image on the site's own host."""
+    match = _OG_IMAGE.search(html)
+    if not match:
+        return None
+    url = (match.group(1) or match.group(2)).strip()
+    parts = urlsplit(url)
+    host = parts.hostname or ""
+    if parts.scheme != "https" or not (host == "unithaitravel.com" or host.endswith(".unithaitravel.com")):
+        return None
+    return url
+
+
+async def _fetch_og_image(client: httpx.AsyncClient, url: str) -> str | None:
+    """og:image of one tour page, reading only as much of the page as needed. None on any failure."""
+    try:
+        async with client.stream("GET", url) as response:
+            if response.status_code != 200:
+                return None
+            seen = b""
+            async for chunk in response.aiter_bytes():
+                seen += chunk
+                if b"</head>" in seen.lower() or len(seen) >= _HEAD_LIMIT:
+                    break
+        return _parse_og_image(seen.decode("utf-8", "replace"))
+    except Exception as e:  # one slow or broken page must not cost the other tours their pictures
+        print(f"[UniThaiScraper] no image for {url}: {e}", file=sys.stderr)
+        return None
+
+
+async def _fill_images(
+    tours: list[TourItem],
+    known_images: dict[str, str],
+    client: httpx.AsyncClient | None = None,
+    limit: int = IMAGE_FETCHES_PER_RUN,
+    pause: float = IMAGE_FETCH_PAUSE,
+) -> int:
+    """Give every tour its picture: reuse the stored one, else fetch it (up to `limit` per run).
+
+    Returns how many were fetched. Tours left without a picture are retried on the next run.
+    """
+    todo: list[TourItem] = []
+    for tour in tours:
+        known = known_images.get(tour.tour_url)
+        if known:
+            tour.image_url = known
+        elif len(todo) < limit:
+            todo.append(tour)
+    if not todo:
+        return 0
+
+    own_client = client is None
+    client = client or httpx.AsyncClient(timeout=20, follow_redirects=True)
+    gate = asyncio.Semaphore(IMAGE_FETCH_CONCURRENCY)
+
+    async def one(tour: TourItem) -> None:
+        async with gate:
+            tour.image_url = await _fetch_og_image(client, tour.tour_url)
+            await asyncio.sleep(pause)
+
+    try:
+        await asyncio.gather(*(one(t) for t in todo))
+    finally:
+        if own_client:
+            await client.aclose()
+    return sum(1 for t in todo if t.image_url)
 
 
 def _parse_price(text: str) -> float | None:
@@ -117,4 +205,6 @@ class UniThaiScraper(BaseScraper):
                 )
             )
 
+        found = await _fill_images(tours, self.known_images)
+        print(f"[UniThaiScraper] pictures: {sum(1 for t in tours if t.image_url)} of {len(tours)} ({found} fetched now)")
         return tours

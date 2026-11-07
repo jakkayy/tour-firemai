@@ -12,13 +12,17 @@ type Params = {
   sort?: string;
   month?: string;
   q?: string;
+  within?: string;
 };
 
 const THAI_MONTHS_ABBR = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 function getMonthOptions() {
   const now = new Date();
-  const opts = [{ value: "", label: "ทุกเดือน" }];
+  const opts = [
+    { value: "", label: "ทุกช่วงเวลา" },
+    { value: "within:7", label: "ภายใน 7 วัน" },
+  ];
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const beYear = String(d.getFullYear() + 543).slice(-2);
@@ -92,13 +96,13 @@ function FilterContent({
       {/* Month */}
       <div className="mb-5">
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2.5 block">
-          เดือนที่ต้องการเดินทาง
+          ช่วงเวลาเดินทาง
         </label>
         <Dropdown
           options={getMonthOptions()}
           value={month}
           onChange={setMonth}
-          placeholder="ทุกเดือน"
+          placeholder="ทุกช่วงเวลา"
         />
         {month && (
           <p className="text-xs text-zinc-400 mt-1.5">
@@ -178,7 +182,8 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   const [min, setMin] = useState(currentParams.min ?? "");
   const [max, setMax] = useState(currentParams.max ?? "");
   const [sort, setSort] = useState(currentParams.sort ?? "discount");
-  const [month, setMonth] = useState(currentParams.month ?? "");
+  // One choice for "when": a month or the next few days, never both, so the two cannot cancel out
+  const [month, setMonth] = useState(currentParams.within ? `within:${currentParams.within}` : (currentParams.month ?? ""));
 
   const activeFilters =
     selected.length + (min || max ? 1 : 0) + (sort !== "discount" ? 1 : 0) + (month ? 1 : 0);
@@ -195,7 +200,8 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
     if (min) p.set("min", min);
     if (max) p.set("max", max);
     if (sort && sort !== "discount") p.set("sort", sort);
-    if (month) p.set("month", month);
+    if (month.startsWith("within:")) p.set("within", month.slice(7));
+    else if (month) p.set("month", month);
     if (currentParams.q) p.set("q", currentParams.q);
     const qs = p.toString();
     return `/tours${qs ? `?${qs}` : ""}`;

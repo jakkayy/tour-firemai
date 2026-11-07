@@ -9,6 +9,8 @@ import { todayBangkok } from "@/lib/tours";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
+import ImagePlaceholder from "@/components/ImagePlaceholder";
+import CountryFlag from "@/components/CountryFlag";
 import ShareButtons from "@/components/ShareButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import LineAddFriend from "@/components/LineAddFriend";
@@ -128,16 +130,9 @@ export default async function TourDetailPage({
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="relative aspect-[16/9] bg-zinc-100">
               {tour.image_url ? (
-                <TourImage src={tour.image_url} alt={tour.title} priority />
+                <TourImage src={tour.image_url} alt={tour.title} priority countries={countries} />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 gap-2">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d4d4d8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="m21 15-5-5L5 21" />
-                  </svg>
-                  <span className="text-sm text-zinc-400">ไม่มีรูปภาพ</span>
-                </div>
+                <ImagePlaceholder countries={countries} large />
               )}
               {discountPct && (
                 <span className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow">
@@ -152,8 +147,9 @@ export default async function TourDetailPage({
                   {tour.source_name}
                 </span>
                 {countries.map((country) => (
-                  <span key={country} className="inline-flex items-center text-xs font-medium text-zinc-500 bg-zinc-100 rounded-full px-2.5 py-0.5">
-                    📍 {country}
+                  <span key={country} className="inline-flex items-center text-xs font-medium text-zinc-500 bg-zinc-100 rounded-full px-2.5 py-0.5 gap-1.5">
+                    <CountryFlag country={country} size={16} />
+                    {country}
                   </span>
                 ))}
               </div>
