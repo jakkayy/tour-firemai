@@ -1,4 +1,6 @@
-export const revalidate = 21600;
+// Safety net: normally /api/revalidate refreshes this right after a scrape. If that call is
+// missing or fails, the page is still at most 15 minutes behind.
+export const revalidate = 900;
 
 import { supabase } from "@/lib/supabase";
 import { notDepartedFilter } from "@/lib/tours";
