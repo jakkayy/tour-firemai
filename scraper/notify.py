@@ -7,9 +7,9 @@ from zoneinfo import ZoneInfo
 import httpx
 
 from base_scraper import TourItem
+from config import SITE_URL
 
 LINE_API = "https://api.line.me/v2/bot/message"
-SITE_URL = "https://tour-firemai.vercel.app"
 
 # Cards shown per alert (plus the closing "see all" card). Few enough to read without
 # swiping through a wall of them; LINE itself allows 12 bubbles per carousel.

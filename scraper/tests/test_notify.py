@@ -304,3 +304,20 @@ class TestSendWindow:
         fake.install(monkeypatch)
         assert notify.run_notifications(now=self._at(13)) is False
         assert sent == [] and fake.marked is None
+
+
+def test_closing_card_links_to_the_configured_site(monkeypatch):
+    import importlib
+
+    import config
+
+    monkeypatch.setenv("SITE_URL", "https://firemai.example.com")
+    try:
+        importlib.reload(config)
+        reloaded = importlib.reload(notify)
+        uri = reloaded.build_flex_message([_tour("a", 40)])["contents"]["contents"][-1]["footer"]["contents"][0]["action"]["uri"]
+        assert uri == "https://firemai.example.com/tours"
+    finally:
+        monkeypatch.delenv("SITE_URL")
+        importlib.reload(config)
+        importlib.reload(notify)

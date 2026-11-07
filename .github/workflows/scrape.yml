@@ -30,6 +30,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Optional: the website's public address, once it has its own domain. Defaults to the Vercel one.
+          SITE_URL: ${{ vars.SITE_URL }}
           # Optional: refresh the website's cached pages right after the scrape. Skipped when unset.
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}

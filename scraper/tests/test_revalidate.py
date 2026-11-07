@@ -72,3 +72,18 @@ def test_failed_warm_up_still_counts_as_refreshed(monkeypatch):
     monkeypatch.setenv("REVALIDATE_SECRET", "s3cret")
     _capture(monkeypatch, fail_get=True)
     assert revalidate.trigger_revalidation() is True
+
+
+def test_default_url_follows_the_configured_site(monkeypatch):
+    import importlib
+
+    import config
+
+    monkeypatch.setenv("SITE_URL", "https://firemai.example.com")
+    try:
+        importlib.reload(config)
+        assert importlib.reload(revalidate).DEFAULT_URL == "https://firemai.example.com/api/revalidate"
+    finally:
+        monkeypatch.delenv("SITE_URL")
+        importlib.reload(config)
+        importlib.reload(revalidate)

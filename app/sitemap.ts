@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { notDepartedFilter } from "@/lib/tours";
+import { SITE_URL } from "@/lib/site";
 
-const BASE_URL = "https://tour-firemai.vercel.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const res = await supabase
@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .limit(1000);
 
   const tourPages: MetadataRoute.Sitemap = ((res.data ?? []) as Array<{ id: number; updated_at: string }>).map((tour) => ({
-    url: `${BASE_URL}/tours/${tour.id}`,
+    url: `${SITE_URL}/tours/${tour.id}`,
     lastModified: new Date(tour.updated_at),
     changeFrequency: "daily",
     priority: 0.7,
@@ -22,19 +22,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: BASE_URL,
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: "hourly",
       priority: 1,
     },
     {
-      url: `${BASE_URL}/tours`,
+      url: `${SITE_URL}/tours`,
       lastModified: new Date(),
       changeFrequency: "hourly",
       priority: 0.9,
     },
     {
-      url: `${BASE_URL}/privacy`,
+      url: `${SITE_URL}/privacy`,
       lastModified: new Date("2026-11-07"),
       changeFrequency: "yearly",
       priority: 0.2,

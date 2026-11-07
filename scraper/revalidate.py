@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from notify import SITE_URL
+from config import SITE_URL
 
 DEFAULT_URL = f"{SITE_URL}/api/revalidate"
 

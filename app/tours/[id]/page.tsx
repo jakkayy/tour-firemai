@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { countriesToShow, extractCountries } from "@/lib/countries";
 import { todayBangkok } from "@/lib/tours";
+import { SITE_URL } from "@/lib/site";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
@@ -15,8 +16,6 @@ import ShareButtons from "@/components/ShareButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import LineAddFriend from "@/components/LineAddFriend";
 import PriceHistory from "@/components/PriceHistory";
-
-const BASE_URL = "https://tour-firemai.vercel.app";
 
 type TourWithSource = Tour & { source_name: string };
 
@@ -74,7 +73,7 @@ export async function generateMetadata({
     openGraph: {
       title: tour.title,
       description,
-      url: `${BASE_URL}/tours/${tour.id}`,
+      url: `${SITE_URL}/tours/${tour.id}`,
       images: tour.image_url ? [{ url: tour.image_url }] : [],
     },
   };
@@ -112,7 +111,7 @@ export default async function TourDetailPage({
   const countries = countriesToShow(tour.countries ?? extractCountries(tour.title));
   const price = tour.discounted_price ?? tour.original_price;
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
-  const pageUrl = `${BASE_URL}/tours/${tour.id}`;
+  const pageUrl = `${SITE_URL}/tours/${tour.id}`;
 
   return (
     <>
