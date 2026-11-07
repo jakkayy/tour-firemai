@@ -44,6 +44,7 @@ def upsert_tours(tours: list[TourItem]) -> int:
             "source_id": t.source_id,
             "title": t.title,
             "tour_url": t.tour_url,
+            "countries": t.countries,
             "destination": t.destination,
             "original_price": t.original_price,
             "discounted_price": t.discounted_price,

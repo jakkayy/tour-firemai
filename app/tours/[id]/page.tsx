@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { countriesToShow } from "@/lib/countries";
+import { countriesToShow, extractCountries } from "@/lib/countries";
 import { todayBangkok } from "@/lib/tours";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
@@ -106,7 +106,8 @@ export default async function TourDetailPage({
 
   const departed = tour.departure_date != null && tour.departure_date < todayBangkok();
 
-  const countries = countriesToShow(tour.title);
+  // Set by the scraper; only missing on a database without migration 008
+  const countries = countriesToShow(tour.countries ?? extractCountries(tour.title));
   const price = tour.discounted_price ?? tour.original_price;
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const pageUrl = `${BASE_URL}/tours/${tour.id}`;

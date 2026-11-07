@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
+
+from countries import detect_countries
+from thai_text import normalize_thai
 
 
 @dataclass
@@ -17,6 +20,7 @@ class TourItem:
     departure_date: Optional[date] = None
     seats_left: Optional[int] = None
     image_url: Optional[str] = None
+    countries: list[str] = field(default_factory=list)
 
 
 class BaseScraper(ABC):
@@ -44,3 +48,15 @@ def drop_departed(tours: list[TourItem], today: Optional[date] = None) -> list[T
     """
     today = today or today_bangkok()
     return [t for t in tours if t.departure_date is None or t.departure_date >= today]
+
+
+def prepare_tours(tours: list[TourItem]) -> list[TourItem]:
+    """Tidy the title (Thai marks in the usual order) and work out the countries, in place.
+
+    Done once here so every source gets it, whatever its scraper does.
+    """
+    for tour in tours:
+        tour.title = normalize_thai(tour.title)
+        tour.countries = detect_countries(tour.title)
+    return tours
+

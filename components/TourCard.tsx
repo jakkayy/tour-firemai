@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Tour } from "@/types/database";
-import { countriesToShow } from "@/lib/countries";
+import { countriesToShow, extractCountries } from "@/lib/countries";
 import TourImage from "./TourImage";
 import FavoriteButton from "./FavoriteButton";
 
@@ -35,7 +35,8 @@ function PinIcon() {
 export default function TourCard({ tour, priority = false }: Props) {
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const price = tour.discounted_price ?? tour.original_price;
-  const countries = countriesToShow(tour.title);
+  // Set by the scraper; only missing on a database without migration 008
+  const countries = countriesToShow(tour.countries ?? extractCountries(tour.title));
   // Room for two names on the image; the full list is in the tooltip
   const countryLabel =
     countries.slice(0, 2).join(" · ") + (countries.length > 2 ? ` +${countries.length - 2}` : "");
