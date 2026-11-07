@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import SiteFooter from "@/components/SiteFooter";
 import CookieConsent from "@/components/CookieConsent";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,16 +11,15 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const BASE_URL = "https://tour-firemai.vercel.app";
 
 export const metadata: Metadata = {
   title: "ทัวร์ไฟไหม้ | รวมทัวร์ลดราคาก่อนวันเดินทาง",
   description: "รวมทัวร์ที่ใกล้วันเดินทางแต่คนยังไม่ครบ ลดราคาสูงสุดเพื่อเติมที่นั่ง อัปเดตทุก 6 ชั่วโมง",
-  metadataBase: new URL(BASE_URL),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     title: "ทัวร์ไฟไหม้ | รวมทัวร์ลดราคาก่อนวันเดินทาง",
     description: "รวมทัวร์ที่ใกล้วันเดินทางแต่คนยังไม่ครบ ลดราคาสูงสุดเพื่อเติมที่นั่ง อัปเดตทุก 6 ชั่วโมง",
-    url: BASE_URL,
+    url: SITE_URL,
     siteName: "ทัวร์ไฟไหม้",
     locale: "th_TH",
     type: "website",

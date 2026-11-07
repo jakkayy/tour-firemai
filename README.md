@@ -204,6 +204,25 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 Optional tuning variables for the alert rules go in GitHub **variables**, not secrets. See [LINE alerts](#line-alerts).
 
+### Custom domain
+
+The site's public address lives in one place per side, and defaults to `https://tour-firemai.vercel.app`, so nothing changes until you set it:
+
+| Variable | Where | What it controls |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | **Vercel** (Config, read at build time, redeploy after changing) | canonical and OpenGraph URLs, `sitemap.xml`, `robots.txt`, share links |
+| `SITE_URL` | **GitHub variable** (not a secret) | links in the LINE alerts, and where the scraper sends the "refresh the site" call |
+
+Both accept `https://firemai.example.com`, with or without a trailing slash or even the scheme. Use the same address in both.
+
+To move to a domain you own:
+
+1. Vercel → Settings → Domains → add the domain and create the DNS record Vercel shows (a `CNAME` for a subdomain such as `firemai.example.com`).
+2. Make the old `*.vercel.app` address redirect to the new one, so existing links and search rankings carry over.
+3. Set the two variables above and redeploy.
+
+One domain can serve several hosts: each subdomain has its own DNS record, so `firemai.example.com` can point to Vercel while another subdomain points at a different server.
+
 ### Fresh data on the site after each scrape
 
 The home page is cached (`revalidate = 900`, so at most 15 minutes behind on its own) and the sitemap is only rebuilt when the site is deployed. So new tours show up right away, the scraper calls `POST /api/revalidate` when it finishes; that endpoint refreshes the home page, sitemap and the country filter list, and the scraper then opens the home page once so the first visitor gets the finished page. The tour list and tour pages are rendered on every request and never needed this. Without `REVALIDATE_SECRET` nothing breaks: the home page just waits out its 15-minute cache, but the sitemap then only changes on a deploy.
