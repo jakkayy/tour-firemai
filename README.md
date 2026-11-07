@@ -33,7 +33,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Displays discount percentage, original price, and departure date
 - Image fallback when tour photo fails to load
 - Mobile-friendly with a filter drawer on small screens
-- ISR cache (6 hours) — fast response, minimal Supabase usage
+- Home page cached for 15 minutes and refreshed right after every scrape — fast response, minimal Supabase usage (see [Fresh data on the site](#fresh-data-on-the-site-after-each-scrape))
 - Error boundaries on every page, 404 page, loading skeletons
 - SEO: sitemap, robots.txt, dynamic metadata based on active filters
 
@@ -42,7 +42,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - Email notification via GitHub Actions when a scraper fails
 - Deletes tours inactive for more than 3 days after each run
 - Skips tours already departed, so they are deactivated and cleaned up with the rest
-- Sends followers of the LINE account a morning Flex Message carousel of new deals discounting 30%+, at most once a day (optional, see [LINE alerts](#line-alerts))
+- Sends followers of the LINE account a morning Flex Message carousel of new deals discounting 30%+, by default at most once a day (optional, see [LINE alerts](#line-alerts))
 
 **Security**
 - Row Level Security (RLS) on Supabase
@@ -63,6 +63,7 @@ tour-firemai/
 │   ├── not-found.tsx         # 404 page
 │   ├── loading.tsx           # Landing skeleton
 │   ├── sitemap.ts            # /sitemap.xml
+│   ├── api/revalidate/route.ts # POST: refresh cached pages after a scrape (needs REVALIDATE_SECRET)
 │   ├── robots.ts             # /robots.txt
 │   ├── tours/error.tsx       # Tours error boundary
 │   ├── tours/loading.tsx     # Tours skeleton
@@ -94,6 +95,7 @@ tour-firemai/
 │   ├── main.py               # Entry point + retry logic + cleanup
 │   ├── base_scraper.py       # Abstract base class
 │   ├── notify.py             # LINE Flex Message alerts
+│   ├── revalidate.py         # Tells the website to refresh after a scrape
 │   ├── preview_flex.py       # Preview / validate the alert card
 │   ├── db.py                 # Supabase upsert + stale tour deletion
 │   ├── requirements.txt
@@ -109,6 +111,7 @@ tour-firemai/
 │       ├── test_parsers.py   # parser tests for all scrapers
 │       ├── test_filters.py   # departed-tour filter tests
 │       ├── test_notify.py    # Flex message + alert rules
+│       ├── test_revalidate.py # Website refresh call
 │       ├── test_db.py
 │       └── test_main.py
 ├── supabase/migrations/
