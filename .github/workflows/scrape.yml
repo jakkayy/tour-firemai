@@ -30,6 +30,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Optional: refresh the website's cached pages right after the scrape. Skipped when unset.
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
           # Optional: LINE alert for newly found tours. Skipped when unset.
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_BROADCAST: ${{ secrets.LINE_BROADCAST }}

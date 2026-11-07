@@ -145,7 +145,8 @@ const getAvailableCountries = unstable_cache(
     return COUNTRY_LIST.filter((c) => found.has(c));
   },
   ["available-countries"],
-  { revalidate: 21600 }
+  // The tag lets /api/revalidate refresh this right after a scrape
+  { revalidate: 21600, tags: ["tours"] }
 );
 
 export default async function ToursPage({

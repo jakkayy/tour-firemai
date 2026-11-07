@@ -3,6 +3,7 @@ import sys
 from base_scraper import drop_departed
 from db import upsert_tours, deactivate_missing, delete_stale_tours
 from notify import run_notifications
+from revalidate import trigger_revalidation
 from scrapers.travelzeed import TravelzeedScraper
 from scrapers.thaifly import ThaiFlyScraper
 from scrapers.mushroom import MushroomScraper
@@ -51,6 +52,8 @@ async def main():
     results = await asyncio.gather(*[run_scraper(s) for s in SCRAPERS])
     deleted = delete_stale_tours(days=3)
     print(f"[cleanup] deleted {deleted} stale tours")
+    # Even if one source failed, the others wrote new data, so the site should still refresh
+    trigger_revalidation()
     run_notifications()
     if not all(results):
         sys.exit(1)

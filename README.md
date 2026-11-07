@@ -187,6 +187,17 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 Optional tuning variables for the alert rules go in GitHub **variables**, not secrets. See [LINE alerts](#line-alerts).
 
+### Fresh data on the site after each scrape
+
+The home page is cached (`revalidate = 900`, so at most 15 minutes behind on its own) and the sitemap is only rebuilt when the site is deployed. So new tours show up right away, the scraper calls `POST /api/revalidate` when it finishes; that endpoint refreshes the home page, sitemap and the country filter list, and the scraper then opens the home page once so the first visitor gets the finished page. The tour list and tour pages are rendered on every request and never needed this. Without `REVALIDATE_SECRET` nothing breaks: the home page just waits out its 15-minute cache, but the sitemap then only changes on a deploy.
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `REVALIDATE_SECRET` | **Vercel** (server-only, not `NEXT_PUBLIC_`, redeploy after adding) and **GitHub secret**, same value in both | Authorises the call. Without it the endpoint answers 503 and the scraper skips the step |
+| `REVALIDATE_URL` | GitHub variable, optional | Defaults to `https://tour-firemai.vercel.app/api/revalidate` |
+
+Use a long random value, for example `openssl rand -hex 32`. The step never fails a scrape: if the website is down it only logs a warning.
+
 ### LINE alerts
 
 Visitors add the site's LINE Official Account as a friend with a button on the site (navbar, home page, tour pages, footer). Each morning the scraper can send everyone who follows the account one **Flex Message carousel** of the best new deals: a card per tour (image, discount badge, price, savings, departure date, "ดูทัวร์" button), biggest discounts first, plus a closing card linking to the site.
