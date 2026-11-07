@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { COUNTRY_LIST, extractCountry } from "@/lib/countries";
+import { COUNTRY_LIST, extractCountries } from "@/lib/countries";
 import { notDepartedFilter } from "@/lib/tours";
 import type { Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
@@ -127,21 +127,33 @@ async function getTours(params: Params): Promise<{ tours: TourWithSource[]; tota
   };
 }
 
-const getAvailableCountries = unstable_cache(
-  async (): Promise<string[]> => {
-    const { data } = await supabase
+// Titles of every tour still on offer. Read in pages because one request returns at most 1000 rows,
+// and in a fixed order so the pages don't overlap or skip rows.
+async function getAllActiveTitles(): Promise<string[]> {
+  const PAGE = 1000;
+  const titles: string[] = [];
+  for (let from = 0; from < 50 * PAGE; from += PAGE) {
+    const { data, error } = await supabase
       .from("tours")
       .select("title")
       .eq("is_active", true)
       .or(notDepartedFilter())
-      .limit(500);
+      .order("id")
+      .range(from, from + PAGE - 1);
+    if (error || !data) break;
+    const rows = data as { title: string }[];
+    titles.push(...rows.map((row) => row.title));
+    if (rows.length < PAGE) break;
+  }
+  return titles;
+}
 
-    if (!data) return [];
+const getAvailableCountries = unstable_cache(
+  async (): Promise<string[]> => {
     const found = new Set<string>();
-    data.forEach(({ title }) => {
-      const c = extractCountry(title);
-      if (c) found.add(c);
-    });
+    for (const title of await getAllActiveTitles()) {
+      extractCountries(title).forEach((country) => found.add(country));
+    }
     return COUNTRY_LIST.filter((c) => found.has(c));
   },
   ["available-countries"],

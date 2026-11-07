@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Tour } from "@/types/database";
-import { extractCountry } from "@/lib/countries";
+import { countriesToShow } from "@/lib/countries";
 import TourImage from "./TourImage";
 import FavoriteButton from "./FavoriteButton";
 
@@ -35,7 +35,10 @@ function PinIcon() {
 export default function TourCard({ tour, priority = false }: Props) {
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const price = tour.discounted_price ?? tour.original_price;
-  const country = extractCountry(tour.title);
+  const countries = countriesToShow(tour.title);
+  // Room for two names on the image; the full list is in the tooltip
+  const countryLabel =
+    countries.slice(0, 2).join(" · ") + (countries.length > 2 ? ` +${countries.length - 2}` : "");
 
   return (
     <div className="group relative rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
@@ -74,10 +77,13 @@ export default function TourCard({ tour, priority = false }: Props) {
             </span>
           )}
 
-          {country && (
-            <span className="absolute bottom-3 right-3 text-white text-xs font-semibold bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-              <PinIcon />
-              {country}
+          {countries.length > 0 && (
+            <span
+              title={countries.join(", ")}
+              className="absolute bottom-3 right-3 max-w-[60%] text-white text-xs font-semibold bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1"
+            >
+              <span className="shrink-0"><PinIcon /></span>
+              <span className="truncate">{countryLabel}</span>
             </span>
           )}
         </div>

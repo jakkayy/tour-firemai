@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { extractCountry } from "@/lib/countries";
+import { countriesToShow } from "@/lib/countries";
 import { todayBangkok } from "@/lib/tours";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
@@ -106,7 +106,7 @@ export default async function TourDetailPage({
 
   const departed = tour.departure_date != null && tour.departure_date < todayBangkok();
 
-  const country = extractCountry(tour.title);
+  const countries = countriesToShow(tour.title);
   const price = tour.discounted_price ?? tour.original_price;
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const pageUrl = `${BASE_URL}/tours/${tour.id}`;
@@ -150,11 +150,11 @@ export default async function TourDetailPage({
                 <span className="inline-flex items-center text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-0.5">
                   {tour.source_name}
                 </span>
-                {country && (
-                  <span className="inline-flex items-center text-xs font-medium text-zinc-500 bg-zinc-100 rounded-full px-2.5 py-0.5">
+                {countries.map((country) => (
+                  <span key={country} className="inline-flex items-center text-xs font-medium text-zinc-500 bg-zinc-100 rounded-full px-2.5 py-0.5">
                     📍 {country}
                   </span>
-                )}
+                ))}
               </div>
 
               <h1 className="text-xl md:text-2xl font-bold text-zinc-900 mb-6 leading-snug">
