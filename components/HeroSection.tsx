@@ -8,13 +8,12 @@ import Dropdown from "./Dropdown";
 const BG_IMAGE =
   "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=1920&q=80";
 
-// `keywords` are extra words that find an option when typing in the field
 const BUDGET_OPTIONS = [
   { value: "", label: "ทุกราคา" },
-  { value: "10000", label: "ต่ำกว่า ฿10,000", keywords: "10000 หนึ่งหมื่น" },
-  { value: "10000-20000", label: "฿10,000 – ฿20,000", keywords: "10000 20000 หนึ่งหมื่น สองหมื่น" },
-  { value: "20000-50000", label: "฿20,000 – ฿50,000", keywords: "20000 50000 สองหมื่น ห้าหมื่น" },
-  { value: "50000+", label: "มากกว่า ฿50,000", keywords: "50000 ห้าหมื่น" },
+  { value: "10000", label: "ต่ำกว่า ฿10,000" },
+  { value: "10000-20000", label: "฿10,000 – ฿20,000" },
+  { value: "20000-50000", label: "฿20,000 – ฿50,000" },
+  { value: "50000+", label: "มากกว่า ฿50,000" },
 ];
 
 const SORT_OPTIONS = [
@@ -24,20 +23,16 @@ const SORT_OPTIONS = [
 ];
 
 const THAI_MONTHS_ABBR = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-const THAI_MONTHS_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-const ENGLISH_MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 
 function getMonthOptions() {
   const now = new Date();
-  const opts: { value: string; label: string; keywords?: string }[] = [{ value: "", label: "ทุกเดือน" }];
+  const opts = [{ value: "", label: "ทุกเดือน" }];
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const beYear = String(d.getFullYear() + 543).slice(-2);
     opts.push({
       value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
       label: `${THAI_MONTHS_ABBR[d.getMonth()]} ${beYear}`,
-      // so typing "พฤศจิกายน", "november" or "11" finds the month too
-      keywords: `${THAI_MONTHS_FULL[d.getMonth()]} ${ENGLISH_MONTHS[d.getMonth()]} ${d.getMonth() + 1} ${d.getFullYear() + 543}`,
     });
   }
   return opts;
@@ -123,7 +118,6 @@ export default function HeroSection({ selectedCountry, countries }: { selectedCo
             value={budget}
             onChange={setBudget}
             placeholder="งบประมาณ"
-            searchable
             className="flex-1"
           />
 
@@ -133,7 +127,6 @@ export default function HeroSection({ selectedCountry, countries }: { selectedCo
             value={month}
             onChange={setMonth}
             placeholder="ทุกเดือน"
-            searchable
             className="flex-1"
           />
 

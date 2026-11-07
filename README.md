@@ -30,7 +30,7 @@ Aggregates last-minute discounted tours from leading Thai travel agencies, updat
 - "Add LINE friend" button to receive those alerts
 - Favorites: save tours with the heart icon (stored in the browser, no login) and review them at `/favorites`
 - Filter by destination (multi-select; a tour can belong to several countries), departure month, price range, and sort order — see [Countries](#countries)
-- Country, budget and month fields on the home page can be typed into as well as picked from the list (arrow keys and Enter work); countries show their flag
+- The country field on the home page can be typed into as well as picked from the list (arrow keys and Enter work); countries show their flag
 - Displays discount percentage, original price, and departure date
 - Image fallback when tour photo fails to load
 - Mobile-friendly with a filter drawer on small screens

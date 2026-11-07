@@ -7,8 +7,6 @@ export type DropdownOption = {
   label: string;
   // Shown before the label, in the list and in the field
   icon?: ReactNode;
-  // Extra words that find this option when searching, without being shown (e.g. a month's full name)
-  keywords?: string;
 };
 
 type Props = {
@@ -41,12 +39,11 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-// Compare without caring about case, spaces, commas, dots, dashes or the baht sign, so that
-// "20000" finds "฿20,000" and "พย" finds "พ.ย."
-const fold = (text: string) => text.toLowerCase().replace(/[\s,.฿–-]/g, "");
+// Compare without caring about case, spaces, dots or dashes, so "new zealand" finds "New-Zealand"
+const fold = (text: string) => text.toLowerCase().replace(/[\s.–-]/g, "");
 
 function matches(option: DropdownOption, query: string) {
-  return fold(`${option.label} ${option.keywords ?? ""}`).includes(fold(query));
+  return fold(option.label).includes(fold(query));
 }
 
 export default function Dropdown({
@@ -157,7 +154,9 @@ export default function Dropdown({
   const fieldText = typed ? query : (selected?.label ?? "");
 
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    // min-w-0: a flex item will not shrink below its content, which for the typeable field is the
+    // input's default width, so without it the row grows wider than its container
+    <div ref={ref} className={`relative min-w-0 ${className}`}>
       {/* Trigger */}
       {searchable ? (
         <div
@@ -187,7 +186,7 @@ export default function Dropdown({
             onFocus={(e) => e.target.select()} // so typing replaces the current choice
             onKeyDown={onKeyDown}
             // 16px on phones: below that, iOS zooms the page in when the field is focused
-            className={`min-w-0 flex-1 bg-transparent outline-none text-base sm:text-sm truncate ${
+            className={`w-full min-w-0 flex-1 bg-transparent outline-none text-base sm:text-sm truncate ${
               isDark ? "placeholder:text-white/50" : "placeholder:text-zinc-400"
             }`}
           />
