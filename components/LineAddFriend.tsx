@@ -1,3 +1,6 @@
+"use client";
+
+import posthog from "posthog-js";
 import LineIcon from "./LineIcon";
 
 // Link to the LINE Official Account's "add friend" page (e.g. https://lin.ee/xxxx).
@@ -14,6 +17,8 @@ type Props = {
 export default function LineAddFriend({ variant = "banner", className = "" }: Props) {
   if (!ADD_FRIEND_URL || !ADD_FRIEND_URL.startsWith("https://")) return null;
 
+  const captureAddFriend = () => posthog.capture("line_add_friend_clicked", { placement: variant });
+
   if (variant === "nav") {
     return (
       <a
@@ -21,6 +26,7 @@ export default function LineAddFriend({ variant = "banner", className = "" }: Pr
         target="_blank"
         rel="noopener noreferrer"
         aria-label="เพิ่มเพื่อน LINE รับแจ้งเตือนดีลใหม่"
+        onClick={captureAddFriend}
         className={`inline-flex items-center gap-1.5 bg-[#06C755] text-white text-sm font-semibold whitespace-nowrap rounded-full p-2 sm:px-4 hover:opacity-90 transition-opacity ${className}`}
       >
         <LineIcon size={18} />
@@ -42,6 +48,7 @@ export default function LineAddFriend({ variant = "banner", className = "" }: Pr
           href={ADD_FRIEND_URL}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={captureAddFriend}
           className="shrink-0 text-xs font-semibold text-white bg-[#06C755] px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
         >
           เพิ่มเพื่อน
@@ -56,6 +63,7 @@ export default function LineAddFriend({ variant = "banner", className = "" }: Pr
         href={ADD_FRIEND_URL}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={captureAddFriend}
         className={`inline-flex items-center gap-2 bg-[#06C755] text-white text-xs font-semibold px-4 py-2 rounded-full hover:opacity-90 transition-opacity ${className}`}
       >
         <LineIcon size={16} />
@@ -79,6 +87,7 @@ export default function LineAddFriend({ variant = "banner", className = "" }: Pr
         href={ADD_FRIEND_URL}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={captureAddFriend}
         className="shrink-0 inline-flex items-center gap-2 bg-[#06C755] text-white text-sm font-semibold px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
       >
         เพิ่มเพื่อน

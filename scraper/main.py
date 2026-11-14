@@ -3,6 +3,7 @@ import sys
 from base_scraper import drop_departed, prepare_tours
 from db import get_known_images, upsert_tours, deactivate_missing, delete_stale_tours
 from notify import run_notifications
+from posthog_logs import get_posthog_logger, shutdown_posthog_logs
 from revalidate import trigger_revalidation
 from scrapers.travelzeed import TravelzeedScraper
 from scrapers.thaifly import ThaiFlyScraper
@@ -13,6 +14,8 @@ from scrapers.navarich import NavarichScraper
 
 # source_id ตรงกับ seed ใน 001_initial_schema.sql (ลำดับ insert)
 # nidnoitravel (3): listing page ไม่มี title ต้องแก้เพิ่ม
+logger = get_posthog_logger()
+
 SCRAPERS = [
     TravelzeedScraper(source_id=4),
     UniThaiScraper(source_id=5),
@@ -52,16 +55,29 @@ async def run_scraper(scraper, retries: int = 2) -> bool:
     return False
 
 
-async def main():
+async def main() -> int:
     results = await asyncio.gather(*[run_scraper(s) for s in SCRAPERS])
     deleted = delete_stale_tours(days=3)
     print(f"[cleanup] deleted {deleted} stale tours")
     # Even if one source failed, the others wrote new data, so the site should still refresh
-    trigger_revalidation()
-    run_notifications()
-    if not all(results):
-        sys.exit(1)
+    revalidation_succeeded = trigger_revalidation()
+    notifications_sent = run_notifications()
+    logger.info(
+        "scrape_run_completed",
+        extra={
+            "source_count": len(SCRAPERS),
+            "successful_source_count": sum(results),
+            "stale_tours_deleted": deleted,
+            "revalidation_succeeded": revalidation_succeeded,
+            "notifications_sent": notifications_sent,
+        },
+    )
+    return 0 if all(results) else 1
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        exit_code = asyncio.run(main())
+    finally:
+        shutdown_posthog_logs()
+    raise SystemExit(exit_code)

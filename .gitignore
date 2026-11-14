@@ -46,3 +46,4 @@ scraper/venv/
 scraper/**/__pycache__/
 scraper/__pycache__/
 scraper/debug_*.py
+.env.local

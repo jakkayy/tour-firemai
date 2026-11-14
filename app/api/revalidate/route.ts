@@ -1,5 +1,7 @@
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { loggerProvider, posthogLogger } from "@/instrumentation";
 
 // Called by the scraper right after it has written new tours, so the site shows them
 // now instead of when the 6-hour cache would have expired on its own.
@@ -30,6 +32,16 @@ export async function POST(request: Request) {
   revalidatePath("/sitemap.xml");
   // The country list on /tours lives in its own cache entry
   revalidateTag("tours", "max");
+
+  posthogLogger.emit({
+    body: "cache_revalidation_completed",
+    severityNumber: SeverityNumber.INFO,
+    attributes: {
+      revalidated_path_count: 4,
+      revalidated_tag_count: 1,
+    },
+  });
+  await loggerProvider.forceFlush().catch(() => {});
 
   return Response.json({ revalidated: true }, { headers: { "Cache-Control": "no-store" } });
 }

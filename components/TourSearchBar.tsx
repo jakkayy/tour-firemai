@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
+import posthog from "posthog-js";
 
 // How long after the last keystroke the results follow what was typed
 const TYPING_PAUSE_MS = 350;
@@ -53,6 +54,11 @@ export default function TourSearchBar({ initialQ }: { initialQ: string }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (timer.current) clearTimeout(timer.current);
+    const search = text.trim();
+    posthog.capture("tour_keyword_search_submitted", {
+      has_query: Boolean(search),
+      query_length: search.length,
+    });
     apply(text, "push");
   }
 

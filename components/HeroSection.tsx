@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import posthog from "posthog-js";
 import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
 
@@ -57,6 +58,12 @@ export default function HeroSection({ selectedCountry, countries }: { selectedCo
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    posthog.capture("tour_search_submitted", {
+      has_country_filter: Boolean(country),
+      budget_range: budget || "any",
+      has_month_filter: Boolean(month),
+      sort_order: sort,
+    });
     const p = new URLSearchParams();
     if (country) p.set("countries", country);
     if (budget === "10000") p.set("max", "10000");

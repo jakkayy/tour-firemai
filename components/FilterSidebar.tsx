@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import posthog from "posthog-js";
 import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
 
@@ -208,15 +209,24 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   }
 
   function apply() {
+    posthog.capture("tour_filters_applied", {
+      country_count: selected.length,
+      has_min_price: Boolean(min),
+      has_max_price: Boolean(max),
+      sort_order: sort,
+      period_filter: month.startsWith("within:") ? "within" : month ? "month" : "any",
+    });
     router.push(buildUrl());
   }
 
   function clear() {
+    const had_active_filters = activeFilters > 0;
     setSelected([]);
     setMin("");
     setMax("");
     setSort("discount");
     setMonth("");
+    if (had_active_filters) posthog.capture("tour_filters_cleared");
     router.push("/tours");
   }
 

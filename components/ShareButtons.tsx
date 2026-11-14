@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 import LineIcon from "./LineIcon";
 
 function ShareIcon() {
@@ -35,11 +36,13 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
   async function handleNativeShare() {
     try {
       await navigator.share({ title, url });
+      posthog.capture("tour_shared", { share_method: "native" });
     } catch {}
   }
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);
+    posthog.capture("tour_shared", { share_method: "copy_link" });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -73,6 +76,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
           href={`https://line.me/R/share?text=${encodeURIComponent(url)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => posthog.capture("tour_shared", { share_method: "line" })}
           className="flex-1 flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           <LineIcon />
@@ -82,6 +86,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
           href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => posthog.capture("tour_shared", { share_method: "facebook" })}
           className="flex-1 flex items-center justify-center gap-2 bg-[#1877F2] text-white py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           <FacebookIcon />

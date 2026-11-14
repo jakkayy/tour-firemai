@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import posthog from "posthog-js";
 import { supabase } from "@/lib/supabase";
 import { useFavorites } from "@/lib/favorites";
 import { notDepartedFilter } from "@/lib/tours";
@@ -74,7 +75,12 @@ export default function FavoritesList() {
           <span>{gone.length} รายการที่บันทึกไว้ปิดรับหรือเดินทางไปแล้ว</span>
           <button
             type="button"
-            onClick={() => removeMany(gone)}
+            onClick={() => {
+              removeMany(gone);
+              posthog.capture("unavailable_favorites_removed", {
+                removed_count: gone.length,
+              });
+            }}
             className="font-semibold underline underline-offset-2 hover:text-amber-900"
           >
             ลบออกจากรายการ

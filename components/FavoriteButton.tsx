@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useFavorites } from "@/lib/favorites";
 
 function HeartIcon({ filled }: { filled: boolean }) {
@@ -21,11 +22,19 @@ export default function FavoriteButton({ tourId, variant = "icon" }: Props) {
   const saved = ids.includes(tourId);
   const label = saved ? "นำออกจากรายการโปรด" : "บันทึกเป็นรายการโปรด";
 
+  function handleToggle() {
+    toggle(tourId);
+    posthog.capture(saved ? "tour_unfavorited" : "tour_favorited", {
+      tour_id: tourId,
+      presentation: variant,
+    });
+  }
+
   if (variant === "full") {
     return (
       <button
         type="button"
-        onClick={() => toggle(tourId)}
+        onClick={handleToggle}
         aria-pressed={saved}
         className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold border transition-colors ${
           saved
@@ -42,7 +51,7 @@ export default function FavoriteButton({ tourId, variant = "icon" }: Props) {
   return (
     <button
       type="button"
-      onClick={() => toggle(tourId)}
+      onClick={handleToggle}
       aria-pressed={saved}
       aria-label={label}
       title={label}

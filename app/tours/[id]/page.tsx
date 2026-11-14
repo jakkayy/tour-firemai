@@ -16,6 +16,7 @@ import ShareButtons from "@/components/ShareButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import LineAddFriend from "@/components/LineAddFriend";
 import PriceHistory from "@/components/PriceHistory";
+import BookingLink from "@/components/BookingLink";
 
 type TourWithSource = Tour & { source_name: string };
 
@@ -200,14 +201,7 @@ export default async function TourDetailPage({
                 </div>
               )}
 
-              <a
-                href={tour.tour_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center bg-slate-800 text-white py-4 rounded-2xl font-semibold text-base hover:bg-slate-700 transition-colors mb-4"
-              >
-                ดูรายละเอียดและจอง
-              </a>
+              <BookingLink href={tour.tour_url} tourId={tour.id} />
 
               <LineAddFriend variant="note" className="mb-4" />
 
