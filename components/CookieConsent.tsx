@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import posthog from "posthog-js";
 import { setConsent, useConsent } from "@/lib/consent";
 
 const CLARITY_ID = "xdo6ug506l";
@@ -13,13 +14,17 @@ declare global {
   }
 }
 
-// Microsoft Clarity records how people use the pages (clicks, scrolling) and sets cookies, so it is
-// loaded only after a "yes". Without one, no analytics script from Microsoft is requested at all.
+// Microsoft Clarity and PostHog record how people use the pages (clicks, scrolling) and sets cookies, so it is
+// loaded only after a "yes". Without one, no analytics script from Microsoft is requested at all,
+// and PostHog (initialised opted-out in instrumentation-client.ts) captures nothing.
 export default function CookieConsent() {
   const consent = useConsent();
 
   useEffect(() => {
     if (consent === "granted") {
+      if (process.env.NEXT_PUBLIC_POSTHOG_KEY && posthog.has_opted_out_capturing()) {
+        posthog.opt_in_capturing({ captureEventName: false });
+      }
       if (!document.getElementById("clarity-script")) {
         window.clarity =
           window.clarity ||
@@ -34,6 +39,9 @@ export default function CookieConsent() {
       }
       window.clarity?.("consent", true);
     } else if (consent === "denied") {
+      if (process.env.NEXT_PUBLIC_POSTHOG_KEY && !posthog.has_opted_out_capturing()) {
+        posthog.opt_out_capturing();
+      }
       // Changed their mind after saying yes: stop recording and have Clarity remove its cookies
       window.clarity?.("consent", false);
     }
@@ -49,7 +57,7 @@ export default function CookieConsent() {
     >
       <div className="pointer-events-auto mx-auto max-w-3xl rounded-2xl bg-slate-900 text-slate-200 shadow-2xl ring-1 ring-white/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <p className="text-sm leading-relaxed flex-1">
-          เว็บไซต์นี้ใช้คุกกี้ของ Microsoft Clarity เพื่อดูว่าคนใช้หน้าเว็บอย่างไร จะได้ปรับปรุงให้ใช้ง่ายขึ้น
+          เว็บไซต์นี้ใช้คุกกี้ของ Microsoft Clarity และ PostHog เพื่อดูว่าคนใช้หน้าเว็บอย่างไร จะได้ปรับปรุงให้ใช้ง่ายขึ้น
           จะเปิดใช้ก็ต่อเมื่อคุณยอมรับ และเปลี่ยนใจได้ทุกเมื่อ{" "}
           <Link href="/privacy" className="text-teal-300 underline underline-offset-2 hover:text-teal-200">
             อ่านนโยบายความเป็นส่วนตัว

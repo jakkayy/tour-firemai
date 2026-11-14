@@ -10,6 +10,7 @@ import { SITE_URL } from "@/lib/site";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
+import TrackedLink from "@/components/TrackedLink";
 import ImagePlaceholder from "@/components/ImagePlaceholder";
 import CountryFlag from "@/components/CountryFlag";
 import ShareButtons from "@/components/ShareButtons";
@@ -200,14 +201,16 @@ export default async function TourDetailPage({
                 </div>
               )}
 
-              <a
+              <TrackedLink
+                event="click_booking"
+                eventProps={{ tour_id: tour.id }}
                 href={tour.tour_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full text-center bg-slate-800 text-white py-4 rounded-2xl font-semibold text-base hover:bg-slate-700 transition-colors mb-4"
               >
                 ดูรายละเอียดและจอง
-              </a>
+              </TrackedLink>
 
               <LineAddFriend variant="note" className="mb-4" />
 
