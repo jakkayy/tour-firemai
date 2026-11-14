@@ -1,13 +1,15 @@
 import { useSyncExternalStore } from "react";
 
-// Whether the visitor allowed analytics cookies (Microsoft Clarity). Kept in localStorage, on this device only.
+// Whether the visitor allowed analytics cookies (Microsoft Clarity and PostHog). Kept in localStorage, on this device only.
 // "unknown" is only the server's answer: nothing is shown until the browser has been asked.
 export type Consent = "granted" | "denied" | "undecided" | "unknown";
 
-const STORAGE_KEY = "tour-firemai:cookie-consent";
+// v2: PostHog was added to the banner's wording. A "yes" given before that only covered Clarity, so the
+// old key is ignored and everyone is asked again. Bump the suffix whenever what the banner asks for changes.
+const STORAGE_KEY = "tour-firemai:cookie-consent:v2";
 const CHANGE_EVENT = "tour-firemai:cookie-consent-change";
 
-function read(): Consent {
+export function readConsent(): Consent {
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
     return value === "granted" || value === "denied" ? value : "undecided";
@@ -37,5 +39,5 @@ export function setConsent(value: "granted" | "denied" | "undecided") {
 }
 
 export function useConsent(): Consent {
-  return useSyncExternalStore(subscribe, read, () => "unknown");
+  return useSyncExternalStore(subscribe, readConsent, () => "unknown");
 }

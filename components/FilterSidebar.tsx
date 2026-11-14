@@ -210,6 +210,7 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
 
   function apply() {
     track("apply_filters", {
+      source: "sidebar",
       countries: selected,
       min_price: min || null,
       max_price: max || null,

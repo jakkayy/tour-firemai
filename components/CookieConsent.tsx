@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import posthog from "posthog-js";
+import { analyticsReady } from "@/lib/analytics";
 import { setConsent, useConsent } from "@/lib/consent";
 
 const CLARITY_ID = "xdo6ug506l";
@@ -22,7 +23,7 @@ export default function CookieConsent() {
 
   useEffect(() => {
     if (consent === "granted") {
-      if (process.env.NEXT_PUBLIC_POSTHOG_KEY && posthog.has_opted_out_capturing()) {
+      if (analyticsReady() && posthog.has_opted_out_capturing()) {
         posthog.opt_in_capturing({ captureEventName: false });
       }
       if (!document.getElementById("clarity-script")) {
@@ -39,7 +40,7 @@ export default function CookieConsent() {
       }
       window.clarity?.("consent", true);
     } else if (consent === "denied") {
-      if (process.env.NEXT_PUBLIC_POSTHOG_KEY && !posthog.has_opted_out_capturing()) {
+      if (analyticsReady() && !posthog.has_opted_out_capturing()) {
         posthog.opt_out_capturing();
       }
       // Changed their mind after saying yes: stop recording and have Clarity remove its cookies

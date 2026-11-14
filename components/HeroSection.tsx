@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
+import { track } from "@/lib/analytics";
 
 const BG_IMAGE =
   "https://images.unsplash.com/photo-1480796927426-f609979314bd?auto=format&fit=crop&w=1920&q=80";
@@ -65,6 +66,13 @@ export default function HeroSection({ selectedCountry, countries }: { selectedCo
     else if (budget === "50000+") p.set("min", "50000");
     if (sort && sort !== "discount") p.set("sort", sort);
     if (month) p.set("month", month);
+    track("apply_filters", {
+      source: "hero",
+      countries: country ? [country] : [],
+      budget: budget || null,
+      sort,
+      when: month || null,
+    });
     const qs = p.toString();
     router.push(`/tours${qs ? `?${qs}` : ""}`);
   }
