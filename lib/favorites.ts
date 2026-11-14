@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { track } from "@/lib/analytics";
 
 const STORAGE_KEY = "tour-firemai:favorites";
 const CHANGE_EVENT = "tour-firemai:favorites-change";
@@ -47,6 +48,7 @@ export function useFavorites() {
 
   const toggle = useCallback((id: number) => {
     const current = parse(readRaw());
+    track(current.includes(id) ? "unfavorite_tour" : "favorite_tour", { tour_id: id });
     write(current.includes(id) ? current.filter((x) => x !== id) : [id, ...current]);
   }, []);
 

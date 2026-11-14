@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { track } from "@/lib/analytics";
 
 // How long after the last keystroke the results follow what was typed
 const TYPING_PAUSE_MS = 350;
@@ -41,6 +42,7 @@ export default function TourSearchBar({ initialQ }: { initialQ: string }) {
     if (search) params.set("q", search);
     else params.delete("q");
     params.delete("page");
+    if (search) track("search_tours", { query: search, via: mode === "push" ? "submit" : "typing" });
     // "replace" while typing so the back button isn't buried in one entry per pause
     startTransition(() => router[mode](`/tours?${params.toString()}`, { scroll: false }));
   }

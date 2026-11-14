@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CountryFlag from "./CountryFlag";
 import Dropdown from "./Dropdown";
+import { track } from "@/lib/analytics";
 
 type Params = {
   countries?: string;
@@ -208,10 +209,18 @@ export default function FilterSidebar({ countries, currentParams }: Props) {
   }
 
   function apply() {
+    track("apply_filters", {
+      countries: selected,
+      min_price: min || null,
+      max_price: max || null,
+      sort,
+      when: month || null,
+    });
     router.push(buildUrl());
   }
 
   function clear() {
+    track("clear_filters");
     setSelected([]);
     setMin("");
     setMax("");

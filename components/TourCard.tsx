@@ -1,4 +1,4 @@
-import Link from "next/link";
+import TourCardLink from "./TourCardLink";
 import type { Tour } from "@/types/database";
 import { countriesToShow, extractCountries } from "@/lib/countries";
 import TourImage from "./TourImage";
@@ -46,8 +46,9 @@ export default function TourCard({ tour, priority = false }: Props) {
     <div className="group relative rounded-2xl bg-white overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
       {/* Sibling of the link, not a child: a button can't be nested inside an anchor */}
       <FavoriteButton tourId={tour.id} />
-      <Link
+      <TourCardLink
         href={`/tours/${tour.id}`}
+        tourId={tour.id}
         className="flex flex-col h-full"
       >
         {/* Image */}
@@ -115,7 +116,7 @@ export default function TourCard({ tour, priority = false }: Props) {
             </span>
           </div>
         </div>
-      </Link>
+      </TourCardLink>
     </div>
   );
 }
