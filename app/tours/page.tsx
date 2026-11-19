@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { COUNTRY_LIST } from "@/lib/countries";
+import { SITE_URL } from "@/lib/site";
 import { getAvailableCountries } from "@/lib/available-countries";
 import { addDays, notDepartedFilter, parseWithin, todayBangkok } from "@/lib/tours";
 import type { Tour } from "@/types/database";
@@ -12,6 +13,7 @@ import TourCard from "@/components/TourCard";
 import FilterSidebar from "@/components/FilterSidebar";
 import TourSearchBar from "@/components/TourSearchBar";
 import Pagination from "@/components/Pagination";
+import ActiveFilters from "@/components/ActiveFilters";
 
 const PER_PAGE = 12;
 
@@ -48,10 +50,20 @@ export async function generateMetadata({
       ? `รวมทัวร์${selected.join(" ")}ไฟไหม้ ลดราคาสูงสุด อัปเดตทุก 6 ชั่วโมง`
       : "รวมทัวร์ไฟไหม้จาก 6 เว็บชั้นนำ ลดราคาสูงสุด อัปเดตทุก 6 ชั่วโมง";
 
+  // Only the list of all tours and each single-country list are worth indexing. Every other
+  // combination of filters, sorting, search and paging shows the same tours again.
+  const filtered = Object.keys(params).some((key) => key !== "countries");
+  const canonical =
+    selected.length === 1 ? `${SITE_URL}/tours?countries=${encodeURIComponent(selected[0])}` : `${SITE_URL}/tours`;
+  const requested = params.countries ? params.countries.split(",").filter(Boolean) : [];
+  const indexable = !filtered && requested.length <= 1 && selected.length === requested.length;
+
   return {
     title,
     description,
-    openGraph: { title, description },
+    alternates: { canonical },
+    robots: indexable ? undefined : { index: false, follow: true },
+    openGraph: { title, description, url: canonical, siteName: "ทัวร์ไฟไหม้", locale: "th_TH", type: "website" },
   };
 }
 
@@ -208,10 +220,17 @@ export default async function ToursPage({
 
             <div className="flex-1 min-w-0">
               <TourSearchBar initialQ={params.q ?? ""} />
+              <ActiveFilters params={params} />
               {tours.length === 0 ? (
                 <div className="text-center py-24">
                   <p className="text-lg font-medium text-zinc-600">ไม่พบทัวร์ที่ตรงกับเงื่อนไข</p>
                   <p className="text-sm text-zinc-400 mt-1">ลองเปลี่ยนตัวกรองใหม่</p>
+                  <Link
+                    href="/tours"
+                    className="inline-block mt-5 bg-slate-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-slate-700 transition-colors"
+                  >
+                    ล้างตัวกรองและดูทัวร์ทั้งหมด
+                  </Link>
                 </div>
               ) : (
                 <>

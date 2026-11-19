@@ -2,16 +2,28 @@ import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { notDepartedFilter } from "@/lib/tours";
 import { SITE_URL } from "@/lib/site";
+import { getAvailableCountries } from "@/lib/available-countries";
 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const res = await supabase
-    .from("tours")
-    .select("id, updated_at")
-    .eq("is_active", true)
-    .or(notDepartedFilter())
-    .order("updated_at", { ascending: false })
-    .limit(1000);
+  const [res, countries] = await Promise.all([
+    supabase
+      .from("tours")
+      .select("id, updated_at")
+      .eq("is_active", true)
+      .or(notDepartedFilter())
+      .order("updated_at", { ascending: false })
+      .limit(1000),
+    getAvailableCountries(),
+  ]);
+
+  // One landing page per country that has tours, e.g. "ทัวร์ญี่ปุ่น"
+  const countryPages: MetadataRoute.Sitemap = countries.map((country) => ({
+    url: `${SITE_URL}/tours?countries=${encodeURIComponent(country)}`,
+    lastModified: new Date(),
+    changeFrequency: "daily",
+    priority: 0.8,
+  }));
 
   const tourPages: MetadataRoute.Sitemap = ((res.data ?? []) as Array<{ id: number; updated_at: string }>).map((tour) => ({
     url: `${SITE_URL}/tours/${tour.id}`,
@@ -39,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.2,
     },
+    ...countryPages,
     ...tourPages,
   ];
 }

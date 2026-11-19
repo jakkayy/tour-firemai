@@ -67,6 +67,12 @@ export default function TourCard({ tour, priority = false }: Props) {
             </span>
           )}
 
+          {tour.seats_left != null && tour.seats_left > 0 && tour.seats_left <= 5 && (
+            <span className="absolute top-3 right-14 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+              เหลือ {tour.seats_left} ที่นั่ง
+            </span>
+          )}
+
           {tour.departure_date && (
             <span className="absolute bottom-3 left-3 text-white text-xs font-medium bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
               {formatDate(tour.departure_date)}

@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import SiteFooter from "@/components/SiteFooter";
 import CookieConsent from "@/components/CookieConsent";
 import { SITE_URL } from "@/lib/site";
+import { jsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +43,23 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLd({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "ทัวร์ไฟไหม้",
+              url: SITE_URL,
+              inLanguage: "th",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${SITE_URL}/tours?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
         {children}
         <SiteFooter />
         <Analytics />

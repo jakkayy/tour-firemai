@@ -5,8 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { countriesToShow, extractCountries } from "@/lib/countries";
-import { todayBangkok } from "@/lib/tours";
+import { notDepartedFilter, todayBangkok } from "@/lib/tours";
 import { SITE_URL } from "@/lib/site";
+import { jsonLd } from "@/lib/seo";
 import type { PriceHistory as PriceHistoryRow, Tour } from "@/types/database";
 import Navbar from "@/components/Navbar";
 import TourImage from "@/components/TourImage";
@@ -17,6 +18,7 @@ import ShareButtons from "@/components/ShareButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import LineAddFriend from "@/components/LineAddFriend";
 import PriceHistory from "@/components/PriceHistory";
+import TourCard from "@/components/TourCard";
 
 type TourWithSource = Tour & { source_name: string };
 
@@ -48,6 +50,26 @@ async function getPriceHistory(tourId: number): Promise<PriceHistoryRow[]> {
   return (data ?? []) as PriceHistoryRow[];
 }
 
+// Other tours to the same country, soonest departure first. Empty when the countries column is
+// missing (migration 008 not applied) or nothing matches: the page just shows no section.
+async function getRelatedTours(tour: Tour, countries: string[]): Promise<TourWithSource[]> {
+  if (countries.length === 0) return [];
+  const { data, error } = await supabase
+    .from("tours")
+    .select("*, sources(name)")
+    .eq("is_active", true)
+    .or(notDepartedFilter())
+    .neq("id", tour.id)
+    .overlaps("countries", countries)
+    .order("discount_percent", { ascending: false })
+    .limit(3);
+  if (error) return [];
+  return (data ?? []).map((row: Tour & { sources: { name: string } | null }) => ({
+    ...row,
+    source_name: row.sources?.name ?? "",
+  }));
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -68,14 +90,28 @@ export async function generateMetadata({
     .filter(Boolean)
     .join(" · ");
 
+  const departed = tour.departure_date != null && tour.departure_date < todayBangkok();
+
   return {
     title: `${tour.title} | ทัวร์ไฟไหม้`,
     description,
+    alternates: { canonical: `${SITE_URL}/tours/${tour.id}` },
+    // A tour that has already left is of no use in search results
+    robots: departed ? { index: false, follow: true } : undefined,
     openGraph: {
       title: tour.title,
       description,
       url: `${SITE_URL}/tours/${tour.id}`,
+      siteName: "ทัวร์ไฟไหม้",
+      locale: "th_TH",
+      type: "website",
       images: tour.image_url ? [{ url: tour.image_url }] : [],
+    },
+    twitter: {
+      card: tour.image_url ? "summary_large_image" : "summary",
+      title: tour.title,
+      description,
+      images: tour.image_url ? [tour.image_url] : [],
     },
   };
 }
@@ -113,9 +149,53 @@ export default async function TourDetailPage({
   const price = tour.discounted_price ?? tour.original_price;
   const discountPct = tour.discount_percent != null ? Math.round(tour.discount_percent) : null;
   const pageUrl = `${SITE_URL}/tours/${tour.id}`;
+  const related = await getRelatedTours(tour, countries);
+
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: tour.title,
+      url: pageUrl,
+      ...(tour.image_url && { image: tour.image_url }),
+      description: [tour.title, countries.length > 0 && `ทัวร์${countries.join(" ")}`, tour.departure_date && `เดินทาง ${formatDate(tour.departure_date)}`]
+        .filter(Boolean)
+        .join(" · "),
+      ...(price && {
+        offers: {
+          "@type": "Offer",
+          url: pageUrl,
+          priceCurrency: "THB",
+          price,
+          availability:
+            departed || tour.seats_left === 0
+              ? "https://schema.org/SoldOut"
+              : "https://schema.org/InStock",
+          ...(tour.departure_date && { priceValidUntil: tour.departure_date }),
+          seller: { "@type": "Organization", name: tour.source_name },
+        },
+      }),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "หน้าแรก", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "ทัวร์ทั้งหมด", item: `${SITE_URL}/tours` },
+        { "@type": "ListItem", position: 3, name: tour.title, item: pageUrl },
+      ],
+    },
+  ];
 
   return (
     <>
+      {structuredData.map((data) => (
+        <script
+          key={data["@type"]}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(data) }}
+        />
+      ))}
       <Navbar />
       <div className="bg-zinc-50 min-h-screen">
         <div className="max-w-3xl mx-auto px-4 py-10">
@@ -221,6 +301,25 @@ export default async function TourDetailPage({
               <ShareButtons url={pageUrl} title={tour.title} />
             </div>
           </div>
+
+          {related.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-lg font-bold text-zinc-900 mb-4">
+                ทัวร์{countries[0]}อื่นที่น่าสนใจ
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {related.map((item) => (
+                  <TourCard key={item.id} tour={item} />
+                ))}
+              </div>
+              <Link
+                href={`/tours?countries=${encodeURIComponent(countries[0])}`}
+                className="inline-block mt-4 text-sm font-medium text-teal-600 hover:text-teal-500"
+              >
+                ดูทัวร์{countries[0]}ทั้งหมด →
+              </Link>
+            </section>
+          )}
         </div>
       </div>
     </>
